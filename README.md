@@ -81,12 +81,67 @@ web_material/               素材收件箱（已 gitignore，只在本地）
 
 Workers Builds 连接 GitHub 仓库，push 到 `main` 自动构建上线。
 
+### 前置条件：Cloudflare 账号必须已验证邮箱
+
+**没验证邮箱的账号无法使用 Workers**，部署会直接失败并报
+`code: 10034 — You need to verify your email address to use Workers`。
+这是账号级限制，跟本地环境无关。先完成邮箱验证再做后面的事。
+
+### 第 1 步：推送到 GitHub
+
+先在 <https://github.com/new> 建一个**空仓库**（不要勾选 Add README / .gitignore / license），
+然后本地执行：
+
+```bash
+cd sanjie_web
+git remote add origin https://github.com/<你的用户名>/<仓库名>.git
+git push -u origin main
+```
+
+推送时会要求输入用户名和密码。**GitHub 不接受账号密码**，
+密码处要粘 **Personal Access Token**（<https://github.com/settings/tokens> → Generate new token (classic) → 勾选 `repo`）。
+
+### 第 2 步：在 Cloudflare 连接仓库
+
+1. 登录 <https://dash.cloudflare.com> → 左侧 **Workers & Pages** → **Create** → **Workers** → **Connect to Git**
+2. 授权 GitHub，选中刚推上去的仓库
+3. 构建配置：
+
 | 配置项 | 值 |
 |---|---|
-| 构建命令 | `npm run build` |
-| 部署命令 | `npx wrangler deploy` |
-| 输出目录 | `dist` |
-| 环境变量 | `NODE_VERSION=22` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | 留空 |
+| 输出目录 | `dist`（已在 `wrangler.jsonc` 里指定，无需在界面上填） |
+
+4. 环境变量（**Environment variables**，两个都要加）：
+
+| 变量 | 值 | 说明 |
+|---|---|---|
+| `NODE_VERSION` | `22` | Astro 6 起已放弃 Node 18/20，不设会构建失败 |
+| `SITE_URL` | `https://<部署后拿到的域名>` | 见第 3 步 |
+
+5. 点 **Save and Deploy**，等 1–2 分钟
+
+### 第 3 步：回填 SITE_URL 并重新部署
+
+第一次部署前还不知道域名，所以 `SITE_URL` 分两步：
+
+1. 首次部署完成后，记下分配到的地址（形如 `https://sanjie-fire.<你的子域>.workers.dev`）
+2. 回到环境变量，把 `SITE_URL` 设为该地址；如果有自有域名，就填自有域名
+3. 重新部署一次（在 Deployments 里点 **Retry deployment**，或往 `main` 推一个空提交）
+
+**这一步不能跳过**：canonical、`sitemap-index.xml`、`og:url` 全部由 `SITE_URL` 生成，
+不设的话搜索引擎抓到的是一串 `sanjie-fire.workers.dev` 的 404 地址。
+
+### 本地手动部署（可选）
+
+不走 GitHub 集成、只想本地直接推的话：
+
+```bash
+npx wrangler login
+SITE_URL=https://你的域名 npm run deploy
+```
 
 ### 环境变量（在 Cloudflare 后台设置）
 
