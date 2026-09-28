@@ -10,6 +10,8 @@ city: 安顺市
 projectType: 住宅
 scale: "实测总建筑面积 81456.33 平方米，其中计容建筑面积 76275.84 平方米"
 
+cover: ../../assets/cases/anshun-hengxiu-future-city-01.jpg
+
 weight: 310
 draft: false
 

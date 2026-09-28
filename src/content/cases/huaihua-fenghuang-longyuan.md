@@ -10,6 +10,8 @@ city: 怀化市
 projectType: 住宅
 scale: "规划总建筑面积 148611.7 平方米，计容建筑面积 127882.19 平方米，共 941 户"
 
+cover: ../../assets/cases/huaihua-fenghuang-longyuan-01.jpg
+
 weight: 320
 draft: false
 

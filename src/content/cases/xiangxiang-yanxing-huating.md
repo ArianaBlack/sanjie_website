@@ -10,6 +10,8 @@ city: 湘潭市
 projectType: 住宅
 scale: "总建筑面积 197931.17 平方米，其中地上 167038.61 平方米、地下 30892.56 平方米"
 
+cover: ../../assets/cases/xiangxiang-yanxing-huating-01.jpg
+
 weight: 330
 draft: false
 

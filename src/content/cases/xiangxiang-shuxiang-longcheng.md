@@ -10,6 +10,8 @@ city: 湘潭市
 projectType: 住宅
 scale: "总建筑面积约 43927.04 平方米，共 4 栋住宅及沿街商业，281 户"
 
+cover: ../../assets/cases/xiangxiang-shuxiang-longcheng-01.jpg
+
 weight: 340
 draft: false
 
