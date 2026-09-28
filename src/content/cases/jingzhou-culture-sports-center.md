@@ -17,6 +17,8 @@ scope:
   - 防烟排烟系统
   - 气体灭火系统
 
+cover: ../../assets/cases/jingzhou-culture-sports-center-01.jpg
+
 weight: 300
 draft: false
 

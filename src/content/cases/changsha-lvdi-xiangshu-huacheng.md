@@ -17,6 +17,8 @@ scope:
   - 防烟排烟系统
   - 防火卷帘
 
+cover: ../../assets/cases/changsha-lvdi-xiangshu-huacheng-01.jpg
+
 weight: 60
 draft: false
 

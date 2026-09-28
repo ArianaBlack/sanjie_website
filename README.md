@@ -173,7 +173,7 @@ Cloudflare 不是境内接入商，**部署在 Cloudflare 上的站点无法办�
 - [x] 已删除 `src/content/centers/` 下的示例数据
 - [x] `certificates.yaml` 已换成真实证书（消防设施工程专业承包壹级）
 - [x] `robots.txt` 改为构建时生成，Sitemap 域名自动跟随 `site` 配置
-- [x] 31 个工程案例已录入，29 张配图已优化
+- [x] 31 个工程案例已录入，32 张配图已优化（仍有 2 个案例待补图，见下）
 
 上线前仍需确认：
 
@@ -186,3 +186,6 @@ Cloudflare 不是境内接入商，**部署在 Cloudflare 上的站点无法办�
 - [ ] 组织架构图里「装修事业部 / 智能化事业部 / 电力事业部」与公司实际经营范围不冲突
 - [ ] 团建照片已取得出镜同事（含已离职者）的肖像使用同意
 - [ ] 湘乡合作中心（`src/content/centers/xiangxiang.md`）补齐信息后把 `draft` 改为 `false`
+- [ ] **补 2 个案例的配图**（目前列表页显示为灰底占位）：
+      `changsha-lvdi-haishangtan`（长沙绿地海外滩）—— 现有素材带第三方水印，不能用；
+      `tongdao-heritage-fire-protection`（通道文物古建）—— 尚未提供照片

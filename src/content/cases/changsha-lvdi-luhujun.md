@@ -15,6 +15,8 @@ scope:
   - 消火栓系统
   - 防烟排烟系统
 
+cover: ../../assets/cases/changsha-lvdi-luhujun-01.jpg
+
 weight: 160
 draft: false
 
