@@ -1,0 +1,29 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import ServiceCard from '../../components/ServiceCard.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { getServices } from '../../lib/content';
+
+const services = await getServices();
+---
+
+<PageLayout
+  title="业务范围"
+  subtitle="从消防工程施工、改造，到日常维保、技术咨询与灭火器充装，提供覆盖建筑消防全生命周期的服务。"
+  crumbs={[{ label: '首页', href: '/' }, { label: '业务范围' }]}
+  description="三杰消防提供消防施工、消防改造、消防维保、消防技术咨询、灭火器充装五大业务，覆盖建筑消防全生命周期。"
+>
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <SectionHeading
+      title="五大业务板块"
+      subtitle="每一项都可以单独承接，也可以组合成从建设到运维的整体方案。"
+    />
+
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {services.map((service) => <ServiceCard service={service} size="large" />)}
+    </div>
+  </section>
+
+  <CtaBanner />
+</PageLayout>

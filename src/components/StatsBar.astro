@@ -1,0 +1,64 @@
+---
+interface Props {
+  stats: Array<{ label: string; value: string }>;
+  /** 深色背景上使用（首屏等） */
+  onDark?: boolean;
+}
+
+const { stats, onDark = false } = Astro.props;
+
+/**
+ * 把 "100+"、"1000 万㎡" 这类值拆成「数字 + 后缀」，
+ * 数字部分交给 JS 做滚动动画，后缀原样保留。
+ * 拆不出来的（比如纯文字）就不加动画属性，直接静态显示。
+ */
+function parseValue(value: string) {
+  const match = value.match(/^([\d,]+(?:\.\d+)?)(.*)$/);
+  if (!match) return null;
+
+  const numeric = Number(match[1].replace(/,/g, ''));
+  if (!Number.isFinite(numeric)) return null;
+
+  return { numeric, suffix: match[2] };
+}
+---
+
+{
+  stats.length > 0 && (
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
+      {stats.map((stat) => {
+        const parsed = parseValue(stat.value);
+        return (
+          <div class="text-center">
+            <dt class="sr-only">{stat.label}</dt>
+            <dd>
+              <span
+                class:list={[
+                  'block text-3xl font-bold md:text-4xl',
+                  onDark ? 'text-gradient-light' : 'text-gradient',
+                ]}
+                style="font-family: var(--font-display)"
+                {...(parsed
+                  ? {
+                      'data-count-to': String(parsed.numeric),
+                      'data-count-suffix': parsed.suffix,
+                    }
+                  : {})}
+              >
+                {stat.value}
+              </span>
+              <span
+                class:list={[
+                  'mt-2 block text-sm',
+                  onDark ? 'text-brand-200' : 'text-ink-500',
+                ]}
+              >
+                {stat.label}
+              </span>
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
+  )
+}

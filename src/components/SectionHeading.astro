@@ -1,0 +1,52 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  /** 是否居中 */
+  center?: boolean;
+  /** 标题层级，默认 h2 */
+  as?: 'h2' | 'h3';
+  id?: string;
+  /** 深色背景上使用 */
+  onDark?: boolean;
+}
+
+const { title, subtitle, center = false, as = 'h2', id, onDark = false } = Astro.props;
+const Tag = as;
+---
+
+<div class:list={['reveal mb-9', center && 'text-center']}>
+  <Tag
+    id={id}
+    class:list={[
+      'text-2xl font-bold tracking-tight md:text-3xl',
+      onDark && 'text-white',
+    ]}
+  >
+    {title}
+  </Tag>
+
+  <!-- 渐变短横线 -->
+  <div
+    class:list={[
+      'mt-4 h-1 w-12 rounded-full bg-gradient-to-r from-brand-500 to-accent-400',
+      center && 'mx-auto',
+    ]}
+    aria-hidden="true"
+  >
+  </div>
+
+  {
+    subtitle && (
+      <p
+        class:list={[
+          'mt-5 text-base leading-relaxed',
+          onDark ? 'text-brand-100' : 'text-ink-500',
+          center ? 'mx-auto max-w-2xl' : 'max-w-3xl',
+        ]}
+      >
+        {subtitle}
+      </p>
+    )
+  }
+</div>

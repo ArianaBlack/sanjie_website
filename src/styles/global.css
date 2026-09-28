@@ -1,0 +1,336 @@
+@import "tailwindcss";
+
+/*
+  ═══════════════════════════════════════════════════════════════
+   设计系统 —— 蓝白配色
+  ═══════════════════════════════════════════════════════════════
+
+  配色思路：消防行业用红色是惯例，但红色在网页上容易显得刺眼、廉价，
+  且大量红色块会让人紧张。改用深蓝 → 亮蓝的渐变体系，传达「安全、专业、
+  可靠、科技感」，同时白色留白让内容更透气。
+
+  字体：
+    - 正文：系统字体栈（中文 webfont 动辄 5–10MB，会毁掉首屏，绝不用）
+    - 标题：得意黑（Smiley Sans），已按 unicode-range 分包自托管，
+            浏览器只下载页面实际用到的 2–4 个分片
+*/
+
+@theme {
+  /* ── 字体 ─────────────────────────────────────────────── */
+  --font-sans: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+
+  --font-display: "Smiley Sans", "PingFang SC", "Microsoft YaHei",
+    system-ui, sans-serif;
+
+  /* ── 主色：深蓝 → 亮蓝 ─────────────────────────────────── */
+  --color-brand-50: #eff8ff;
+  --color-brand-100: #dbeefe;
+  --color-brand-200: #bfe0fe;
+  --color-brand-300: #93cbfd;
+  --color-brand-400: #60aefa;
+  --color-brand-500: #3b8ef6;
+  --color-brand-600: #1d5fd6;
+  --color-brand-700: #1a4cb4;
+  --color-brand-800: #1b4191;
+  --color-brand-900: #1b3a76;
+  --color-brand-950: #142549;
+
+  /* ── 辅色：青色，只用于渐变过渡和点缀 ──────────────────── */
+  --color-accent-300: #7dd3fc;
+  --color-accent-400: #38bdf8;
+  --color-accent-500: #0ea5e9;
+  --color-accent-600: #0284c7;
+
+  /* ── 中性色：带一点蓝调，与主色更协调 ──────────────────── */
+  --color-ink-50: #f6f8fb;
+  --color-ink-100: #eceff5;
+  --color-ink-200: #dbe1ec;
+  --color-ink-300: #bcc6d8;
+  --color-ink-400: #8b98b0;
+  --color-ink-500: #5f6d86;
+  --color-ink-600: #465268;
+  --color-ink-700: #333d50;
+  --color-ink-800: #212a3a;
+  --color-ink-900: #131a26;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-white text-ink-600 antialiased;
+  }
+
+  p {
+    line-height: 1.8;
+  }
+
+  /* 标题统一用得意黑 */
+  h1,
+  h2,
+  h3 {
+    @apply text-ink-900;
+    font-family: var(--font-display);
+    /* 得意黑是斜体设计，字距略收紧更有力量感 */
+    letter-spacing: 0.01em;
+  }
+
+  /* 键盘焦点可见 —— 无障碍要求 */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+}
+
+@layer components {
+  /* ═══════════════════════════════════════════════════════
+     渐变工具类
+     ═══════════════════════════════════════════════════════ */
+
+  /* 渐变文字 —— 用于标题中的强调片段 */
+  .text-gradient {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-brand-400) 0%,
+      var(--color-accent-400) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 深色背景上的渐变文字（提亮，保证对比度） */
+  .text-gradient-light {
+    background-image: linear-gradient(
+      100deg,
+      #ffffff 0%,
+      var(--color-accent-300) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 首屏主背景 —— 深空蓝渐变 */
+  .bg-hero {
+    background:
+      radial-gradient(
+        ellipse 80% 60% at 70% 20%,
+        rgba(56, 189, 248, 0.18) 0%,
+        transparent 60%
+      ),
+      linear-gradient(160deg, #0b1730 0%, #14294f 45%, #1b3a76 100%);
+  }
+
+  /* 页面区块的浅色渐变底 */
+  .bg-soft {
+    background: linear-gradient(180deg, var(--color-brand-50) 0%, #ffffff 100%);
+  }
+
+  /* 主按钮 —— 渐变 + 发光 */
+  .btn-gradient {
+    background-image: linear-gradient(
+      135deg,
+      var(--color-brand-500) 0%,
+      var(--color-brand-700) 100%
+    );
+    box-shadow:
+      0 1px 2px rgba(29, 95, 214, 0.2),
+      0 8px 24px -8px rgba(29, 95, 214, 0.5);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .btn-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 4px rgba(29, 95, 214, 0.25),
+      0 14px 32px -8px rgba(29, 95, 214, 0.6);
+  }
+  .btn-gradient:active {
+    transform: translateY(0);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     卡片
+     ═══════════════════════════════════════════════════════ */
+
+  /* 带渐变描边的卡片 —— 悬停时描边亮起并上浮 */
+  .card-glow {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--color-ink-100);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+  .card-glow:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-brand-200);
+    box-shadow:
+      0 1px 2px rgba(19, 26, 38, 0.04),
+      0 16px 40px -12px rgba(29, 95, 214, 0.22);
+  }
+
+  /* 顶部渐变描边条 —— 悬停时展开 */
+  .card-topline::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    border-radius: 9999px 9999px 0 0;
+    background: linear-gradient(
+      90deg,
+      var(--color-brand-500),
+      var(--color-accent-400)
+    );
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .card-topline:hover::before {
+    transform: scaleX(1);
+  }
+
+  /* 玻璃拟态 —— 用于深色背景上的信息卡 */
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     滚动进场动画
+     ═══════════════════════════════════════════════════════ */
+
+  /* 默认可见 —— 保证 JS 未加载或禁用时内容不会消失 */
+  .reveal {
+    opacity: 1;
+  }
+
+  /* 只有在 JS 确认可用时才启用「初始隐藏」状态 */
+  .js-reveal .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .js-reveal .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js-reveal .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     装饰元素
+     ═══════════════════════════════════════════════════════ */
+
+  /* 首屏漂浮光晕 */
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(64px);
+    pointer-events: none;
+    animation: orb-float 18s ease-in-out infinite;
+  }
+
+  @keyframes orb-float {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(24px, -32px) scale(1.08);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.96);
+    }
+  }
+
+  /* 网格底纹 */
+  .grid-pattern {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 52px 52px;
+  }
+
+  /* 噪点纹理 —— 消除大面积渐变的「塑料感」，增加质感 */
+  .noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.16;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* 分隔细线 */
+  .divider-gradient {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-ink-200) 20%,
+      var(--color-ink-200) 80%,
+      transparent
+    );
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     Markdown 正文排版
+     ═══════════════════════════════════════════════════════ */
+
+  .prose-cn {
+    @apply text-ink-600;
+  }
+  .prose-cn h2 {
+    @apply mb-4 mt-10 text-2xl;
+  }
+  .prose-cn h3 {
+    @apply mb-3 mt-8 text-xl;
+  }
+  .prose-cn p {
+    @apply my-4;
+  }
+  .prose-cn ul {
+    @apply my-4 list-disc space-y-2 pl-6;
+  }
+  .prose-cn ol {
+    @apply my-4 list-decimal space-y-2 pl-6;
+  }
+  .prose-cn a {
+    @apply text-brand-600 underline underline-offset-2 hover:text-brand-700;
+  }
+  .prose-cn strong {
+    @apply font-semibold text-ink-900;
+  }
+  .prose-cn img {
+    @apply my-6 rounded-lg;
+  }
+}

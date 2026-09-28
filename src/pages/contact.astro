@@ -1,0 +1,204 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import ContactForm from '../components/ContactForm.astro';
+import CtaBanner from '../components/CtaBanner.astro';
+import WeChatQr from '../components/WeChatQr.astro';
+import { SITE, PRIMARY_TEL, TEL_IS_SAME } from '../data/site';
+import { getServiceLabels } from '../lib/content';
+import { getPublishedCenters } from '../lib/centers';
+
+const labels = await getServiceLabels();
+const centers = await getPublishedCenters();
+
+const isPlaceholder = (v: string) => !v || v.includes('待填写');
+const phone = isPlaceholder(SITE.contact.phone) ? '' : SITE.contact.phone;
+const emergency = isPlaceholder(SITE.contact.emergency) ? '' : SITE.contact.emergency;
+const email = isPlaceholder(SITE.contact.email) ? '' : SITE.contact.email;
+
+const amapUrl = SITE.contact.coordinates
+  ? `https://uri.amap.com/marker?position=${SITE.contact.coordinates}&name=${encodeURIComponent(SITE.legalName)}&src=sanjie&coordinate=gaode&callnative=1`
+  : SITE.contact.address.includes('待填写')
+    ? ''
+    : `https://uri.amap.com/search?keyword=${encodeURIComponent(SITE.contact.address)}`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: `联系${SITE.name}`,
+};
+---
+
+<PageLayout
+  title="联系我们"
+  subtitle="无论是新项目咨询、报修还是合作洽谈，都可以通过以下方式找到我们。"
+  crumbs={[{ label: '首页', href: '/' }, { label: '联系我们' }]}
+  description={`联系${SITE.name}：服务热线、公司地址、工作时间与各维保合作中心联系方式。`}
+  jsonLd={jsonLd}
+>
+  <section class="mx-auto max-w-6xl px-4 py-12">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
+      <!-- 联系信息 -->
+      <div>
+        <h2 class="text-lg font-bold text-ink-900">联系方式</h2>
+
+        <dl class="mt-5 divide-y divide-ink-100 border-y border-ink-100">
+          <div class="flex gap-4 py-4">
+            <dt class="w-28 shrink-0 text-sm text-ink-400">
+              {TEL_IS_SAME ? '服务电话 · 24 小时值班' : '服务电话'}
+            </dt>
+            <dd class="text-sm">
+              <a
+                href={`tel:${PRIMARY_TEL}`}
+                class="text-xl font-bold text-brand-600 hover:text-brand-700"
+              >
+                {PRIMARY_TEL}
+              </a>
+            </dd>
+          </div>
+
+          {
+            phone && phone !== PRIMARY_TEL && (
+              <div class="flex gap-4 py-4">
+                <dt class="w-20 shrink-0 text-sm text-ink-400">固定电话</dt>
+                <dd class="text-sm text-ink-700">
+                  <a href={`tel:${phone}`} class="hover:text-brand-600">
+                    {phone}
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+
+          {
+            emergency && !TEL_IS_SAME && (
+              <div class="flex gap-4 py-4">
+                <dt class="w-20 shrink-0 text-sm text-ink-400">24 小时值班</dt>
+                <dd class="text-sm">
+                  <a href={`tel:${emergency}`} class="font-semibold text-brand-600">
+                    {emergency}
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+
+          <div class="flex gap-4 py-4">
+            <dt class="w-20 shrink-0 text-sm text-ink-400">工作时间</dt>
+            <dd class="text-sm text-ink-700">{SITE.contact.hours}</dd>
+          </div>
+
+          <div class="flex gap-4 py-4">
+            <dt class="w-20 shrink-0 text-sm text-ink-400">邮箱</dt>
+            <dd class="text-sm text-ink-700">
+              {email ? <a href={`mailto:${email}`} class="hover:text-brand-600">{email}</a> : SITE.contact.email}
+            </dd>
+          </div>
+
+          <div class="flex gap-4 py-4">
+            <dt class="w-20 shrink-0 text-sm text-ink-400">公司地址</dt>
+            <dd class="text-sm leading-relaxed text-ink-700">
+              {SITE.contact.address}
+              {amapUrl && (
+                <>
+                  <br />
+                  <a
+                    href={amapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+                  >
+                    在地图中打开
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M6 3.5L10.5 8L6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </a>
+                </>
+              )}
+            </dd>
+          </div>
+        </dl>
+
+        <!-- 微信二维码 -->
+        <div id="wechat" class="mt-8 scroll-mt-28">
+          <h2 class="text-lg font-bold text-ink-900">微信咨询</h2>
+          <div
+            class="mt-4 flex flex-wrap items-center gap-6 rounded-xl border border-ink-100 bg-ink-50/60 p-5"
+          >
+            <WeChatQr width={180} caption="扫码添加业务微信" />
+            <div class="min-w-56 flex-1 text-sm leading-relaxed text-ink-600">
+              <p>
+                电话里说不清的问题，加微信发一张现场照片往往更快。涉及图纸、报价单、整改通知书的，
+                也可以直接发过来，我们先看材料再给判断。
+              </p>
+              <p class="mt-3 text-ink-400">
+                微信公众号暂未开通，上线后会在本页更新。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 留言表单 / 降级提示 -->
+      <div>
+        <ContactForm />
+      </div>
+    </div>
+
+    <!-- 各合作中心联系方式速查表 -->
+    {
+      centers.length > 0 && (
+        <div class="mt-16 border-t border-ink-100 pt-10">
+          <h2 class="text-lg font-bold text-ink-900">各合作中心联系方式</h2>
+          <p class="mt-2 text-sm text-ink-400">
+            就近联系可缩短响应时间。完整信息请查看
+            <a href="/centers/" class="text-brand-600 underline underline-offset-2">
+              维保合作中心
+            </a>
+            。
+          </p>
+
+          <div class="mt-5 overflow-x-auto">
+            <table class="w-full min-w-[40rem] border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-ink-200 text-left text-ink-400">
+                  <th class="py-3 pr-4 font-medium">中心</th>
+                  <th class="py-3 pr-4 font-medium">城市</th>
+                  <th class="py-3 pr-4 font-medium">联系电话</th>
+                  <th class="py-3 font-medium">服务内容</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-ink-100">
+                {centers.map((center) => (
+                  <tr>
+                    <td class="py-3 pr-4">
+                      <a
+                        href={`/centers/${center.id}/`}
+                        class="font-medium text-ink-800 hover:text-brand-600"
+                      >
+                        {center.data.shortName ?? center.data.name}
+                      </a>
+                    </td>
+                    <td class="py-3 pr-4 text-ink-600">{center.data.city}</td>
+                    <td class="py-3 pr-4">
+                      <a
+                        href={`tel:${center.data.phone}`}
+                        class="font-medium text-brand-600 hover:text-brand-700"
+                      >
+                        {center.data.phone}
+                      </a>
+                    </td>
+                    <td class="py-3 text-ink-500">
+                      {center.data.services.map((s) => labels.get(s) ?? s).join('、')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )
+    }
+  </section>
+
+  <CtaBanner />
+</PageLayout>

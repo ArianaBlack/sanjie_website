@@ -1,0 +1,186 @@
+---
+import { SITE, COPYRIGHT_START, PRIMARY_TEL, TEL_IS_SAME } from '../data/site';
+// SVG 必须带 ?url 后缀才是资源路径，否则拿到的是 Astro 组件函数
+import logoMark from '../assets/brand/logo-mark.svg?url';
+import { getServices, shouldShowNews } from '../lib/content';
+import WeChatQr from './WeChatQr.astro';
+
+const services = await getServices();
+const showNews = await shouldShowNews();
+
+const year = new Date().getFullYear();
+const copyrightYears =
+  COPYRIGHT_START && COPYRIGHT_START < year ? `${COPYRIGHT_START}–${year}` : `${year}`;
+
+const quickLinks = [
+  { label: '维保合作中心', href: '/centers/' },
+  { label: '工程案例', href: '/cases/' },
+  { label: '资质荣誉', href: '/qualifications/' },
+  { label: '关于我们', href: '/about/' },
+  ...(showNews ? [{ label: '新闻资讯', href: '/news/' }] : []),
+  { label: '联系我们', href: '/contact/' },
+];
+
+const isPlaceholder = (v: string) => !v || v.includes('待填写');
+---
+
+<footer class="mt-20 border-t border-ink-100 bg-ink-900 text-ink-300">
+  <div class="mx-auto max-w-6xl px-4 py-12">
+    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+      <!-- 公司与简介 -->
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2.5">
+          <img src={logoMark} alt="" width="36" height="36" class="h-9 w-9" />
+          <span class="text-lg font-bold text-white" style="font-family: var(--font-display)">
+            {SITE.name}
+          </span>
+        </div>
+        <p class="mt-4 text-sm leading-relaxed text-ink-400">{SITE.intro.short}</p>
+        <p class="mt-4 text-sm text-ink-400">
+          <span class="text-ink-500">服务区域：</span>{SITE.serviceArea}
+        </p>
+      </div>
+
+      <!-- 业务范围 -->
+      <div>
+        <h2 class="text-sm font-semibold text-white">业务范围</h2>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          {
+            services.map((service) => (
+              <li>
+                <a
+                  href={`/services/${service.id}/`}
+                  class="text-ink-400 transition-colors hover:text-white"
+                >
+                  {service.data.navLabel}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- 快速导航 -->
+      <div>
+        <h2 class="text-sm font-semibold text-white">快速导航</h2>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          {
+            quickLinks.map((link) => (
+              <li>
+                <a href={link.href} class="text-ink-400 transition-colors hover:text-white">
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- 联系方式 -->
+      <div>
+        <h2 class="text-sm font-semibold text-white">联系我们</h2>
+        <ul class="mt-4 space-y-3 text-sm text-ink-400">
+          {
+            PRIMARY_TEL && (
+              <li>
+                <span class="block text-ink-500">
+                  {TEL_IS_SAME ? '服务热线 · 24 小时值班' : '服务热线'}
+                </span>
+                <a
+                  href={`tel:${PRIMARY_TEL}`}
+                  class="text-lg font-semibold text-brand-400 transition-colors hover:text-brand-300"
+                >
+                  {PRIMARY_TEL}
+                </a>
+              </li>
+            )
+          }
+          {
+            !isPlaceholder(SITE.contact.emergency) && !TEL_IS_SAME && (
+              <li>
+                <span class="block text-ink-500">24 小时值班</span>
+                <a
+                  href={`tel:${SITE.contact.emergency}`}
+                  class="font-medium text-ink-300 transition-colors hover:text-white"
+                >
+                  {SITE.contact.emergency}
+                </a>
+              </li>
+            )
+          }
+          {
+            !isPlaceholder(SITE.contact.email) && (
+              <li>
+                <span class="block text-ink-500">邮箱</span>
+                <a
+                  href={`mailto:${SITE.contact.email}`}
+                  class="break-all transition-colors hover:text-white"
+                >
+                  {SITE.contact.email}
+                </a>
+              </li>
+            )
+          }
+          <li>
+            <span class="block text-ink-500">工作时间</span>
+            <span>{SITE.contact.hours}</span>
+          </li>
+          <li>
+            <span class="block text-ink-500">公司地址</span>
+            <span>{SITE.contact.address}</span>
+          </li>
+        </ul>
+
+        <!-- 微信二维码 -->
+        <div class="mt-5">
+          <p class="text-sm text-ink-500">微信咨询</p>
+          <div class="mt-2">
+            <WeChatQr width={104} caption={false} />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部版权行 -->
+    <div
+      class="mt-10 flex flex-col gap-3 border-t border-ink-800 pt-6 text-xs text-ink-500 md:flex-row md:items-center md:justify-between"
+    >
+      <p>
+        © {copyrightYears} {SITE.legalName}　保留所有权利
+      </p>
+
+      {/*
+        备案号走环境变量：未备案时整行不渲染。
+        ⚠️ 绝不填写假的或借用他人的备案号 —— 那是违法行为。
+        Cloudflare 不是境内接入商，部署在 Cloudflare 上的站点无法办理 ICP 备案。
+        将来迁往境内并完成备案后，在 Cloudflare 后台设置 PUBLIC_ICP_NO 即可自动显示。
+      */}
+      {
+        (SITE.icp || SITE.police) && (
+          <p class="flex flex-wrap items-center gap-3">
+            {SITE.icp && (
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="transition-colors hover:text-ink-300"
+              >
+                {SITE.icp}
+              </a>
+            )}
+            {SITE.police && (
+              <a
+                href="https://beian.mps.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="transition-colors hover:text-ink-300"
+              >
+                {SITE.police}
+              </a>
+            )}
+          </p>
+        )
+      }
+    </div>
+  </div>
+</footer>

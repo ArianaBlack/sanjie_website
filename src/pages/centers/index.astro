@@ -1,0 +1,154 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import CenterCard from '../../components/CenterCard.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { getServiceLabels } from '../../lib/content';
+import {
+  getPublishedCenters,
+  groupByRegion,
+  needsRegionChrome,
+  countProvinces,
+  countCities,
+} from '../../lib/centers';
+
+const centers = await getPublishedCenters();
+const labels = await getServiceLabels();
+const groups = groupByRegion(centers);
+
+/*
+  优雅降级：
+    - 只有 1 个大区时不渲染大区锚点导航和分组标题 —— 避免「2 家中心配一条孤零零的锚点条」
+    - 中心少于 3 家时不渲染统计条 —— 「覆盖 2 个城市」这种话反而显得单薄
+  中心数量增长后这些元素会自动出现，不需要改代码。
+*/
+const showRegionChrome = needsRegionChrome(groups);
+const showStats = centers.length >= 3;
+
+const provinces = countProvinces(centers);
+const cities = countCities(centers);
+---
+
+<PageLayout
+  title="维保合作中心"
+  subtitle="我们在多地设有维保合作中心，可就近安排巡检与应急响应。选择所在地区查看联系方式。"
+  crumbs={[{ label: '首页', href: '/' }, { label: '维保合作中心' }]}
+  description="三杰消防维保合作中心名录，按地区查看各中心的地址、联系方式与服务范围。"
+>
+  {
+    centers.length === 0 ? (
+      <section class="mx-auto max-w-6xl px-4 py-20 text-center">
+        <p class="text-ink-500">合作中心信息正在整理中。</p>
+        <p class="mt-2 text-sm text-ink-400">
+          如需就近服务，请直接
+          <a href="/contact/" class="text-brand-600 underline underline-offset-2">
+            联系我们
+          </a>
+          。
+        </p>
+      </section>
+    ) : (
+      <>
+        {/* 统计条 */}
+        {showStats && (
+          <section class="border-b border-ink-100 bg-white">
+            <div class="mx-auto flex max-w-6xl flex-wrap gap-x-10 gap-y-4 px-4 py-6">
+              <p class="text-sm text-ink-500">
+                <span class="text-2xl font-bold text-brand-600">{centers.length}</span>
+                <span class="ml-2">家合作中心</span>
+              </p>
+              <p class="text-sm text-ink-500">
+                <span class="text-2xl font-bold text-brand-600">{provinces}</span>
+                <span class="ml-2">个省份</span>
+              </p>
+              <p class="text-sm text-ink-500">
+                <span class="text-2xl font-bold text-brand-600">{cities}</span>
+                <span class="ml-2">个城市</span>
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* 大区锚点导航 —— 仅覆盖多个大区时显示 */}
+        {showRegionChrome && (
+          <nav
+            class="sticky top-[57px] z-30 border-b border-ink-100 bg-white/95 backdrop-blur"
+            aria-label="大区导航"
+          >
+            <div class="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2.5">
+              {groups.map((group) => (
+                <a
+                  href={`#${group.anchor}`}
+                  class="shrink-0 rounded-md px-4 py-1.5 text-sm font-medium text-ink-600 transition-colors hover:bg-brand-50 hover:text-brand-600"
+                >
+                  {group.region}
+                  <span class="ml-1 text-xs text-ink-400">{group.total}</span>
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
+
+        {/* 分组列表 */}
+        <div class="mx-auto max-w-6xl px-4 py-12">
+          {groups.map((group) => (
+            <section id={group.anchor} class="mb-14 scroll-mt-32 last:mb-0">
+              {showRegionChrome && (
+                <h2 class="mb-6 flex items-baseline gap-3 border-b border-ink-100 pb-3 text-xl font-bold text-ink-900">
+                  {group.region}
+                  <span class="text-sm font-normal text-ink-400">{group.total} 家</span>
+                </h2>
+              )}
+
+              {group.cities.map((city) => (
+                <div class="mb-8 last:mb-0">
+                  <h3 class="mb-4 flex items-center gap-2 text-base font-semibold text-ink-700">
+                    <svg
+                      class="h-4 w-4 text-brand-500"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M8 1.5c-2.5 0-4.5 2-4.5 4.5 0 3.4 4.5 8.5 4.5 8.5s4.5-5.1 4.5-8.5c0-2.5-2-4.5-4.5-4.5z"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                      />
+                      <circle cx="8" cy="6" r="1.6" stroke="currentColor" stroke-width="1.4" />
+                    </svg>
+                    {city.city}
+                  </h3>
+
+                  <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    {city.centers.map((center) => (
+                      <CenterCard center={center} labels={labels} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+          ))}
+
+          {/* 未覆盖区域的就近咨询入口 */}
+          <div class="rounded-xl border border-dashed border-ink-200 bg-ink-50/60 p-8 text-center">
+            <h2 class="font-semibold text-ink-900">没有找到你所在的地区？</h2>
+            <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-ink-500">
+              我们的服务网络在持续扩展。即使当地暂无合作中心，也可以直接联系总部，
+              我们会根据项目情况安排人员或推荐就近资源。
+            </p>
+            <a
+              href="/contact/"
+              class="mt-5 inline-flex rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+            >
+              联系总部
+            </a>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  <CtaBanner
+    title="想成为我们的合作中心？"
+    subtitle="如果你在当地有消防服务团队与资质，欢迎联系我们洽谈合作。"
+  />
+</PageLayout>

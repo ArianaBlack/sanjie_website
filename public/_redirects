@@ -1,0 +1,6 @@
+# Cloudflare Workers Static Assets 原生支持 _redirects
+#
+# 域名确定后，如需把 www 与主域统一，取消下面这行注释并替换成实际域名。
+# 注意：两个域名都要先在 Cloudflare 里挂到同一个 Worker 上，否则重定向不生效。
+#
+# https://www.example.com/*  https://example.com/:splat  301

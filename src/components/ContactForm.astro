@@ -1,0 +1,136 @@
+---
+import { SITE, PRIMARY_TEL } from '../data/site';
+
+/*
+  纯静态站点没有后端。中国 B2B 消防客户的实际行为是「直接打电话」，
+  所以首屏主 CTA 用电话和微信，表单只作为次要通道。
+
+  endpoint 走环境变量 PUBLIC_FORM_ENDPOINT，不绑定 Cloudflare ——
+  这样将来迁往境内托管时不用改代码。
+  未配置 endpoint 时自动降级为「请拨打电话 / 扫码加微信」提示卡。
+*/
+
+const endpoint = SITE.formEndpoint;
+const tel = PRIMARY_TEL;
+---
+
+{
+  endpoint ? (
+    <form
+      method="POST"
+      action={endpoint}
+      class="rounded-xl border border-ink-100 bg-white p-6"
+      aria-label="在线留言"
+    >
+      <h2 class="text-lg font-bold text-ink-900">在线留言</h2>
+      <p class="mt-2 text-sm text-ink-400">
+        留下联系方式，我们会在工作时间内与你联系。
+      </p>
+
+      <div class="mt-5 space-y-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-ink-700">
+            称呼 <span class="text-brand-600">*</span>
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            autocomplete="name"
+            class="mt-1.5 w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </div>
+
+        <div>
+          <label for="phone" class="block text-sm font-medium text-ink-700">
+            联系电话 <span class="text-brand-600">*</span>
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            inputmode="tel"
+            autocomplete="tel"
+            class="mt-1.5 w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </div>
+
+        <div>
+          <label for="service" class="block text-sm font-medium text-ink-700">
+            需要什么服务
+          </label>
+          <select
+            id="service"
+            name="service"
+            class="mt-1.5 w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          >
+            <option value="">请选择</option>
+            <option value="消防施工">消防施工</option>
+            <option value="消防改造">消防改造</option>
+            <option value="消防维保">消防维保</option>
+            <option value="消防技术咨询">消防技术咨询</option>
+            <option value="灭火器充装">灭火器充装</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="message" class="block text-sm font-medium text-ink-700">
+            项目情况
+          </label>
+          <textarea
+            id="message"
+            name="message"
+            rows="4"
+            placeholder="简单说明建筑类型、面积、以及你遇到的问题"
+            class="mt-1.5 w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          ></textarea>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="mt-5 w-full rounded-lg bg-brand-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+      >
+        提交留言
+      </button>
+
+      <p class="mt-3 text-xs leading-relaxed text-ink-400">
+        提交即表示你同意我们通过所留方式与你联系，信息仅用于业务沟通，不会提供给第三方。
+      </p>
+    </form>
+  ) : (
+    <div class="rounded-xl border border-ink-100 bg-white p-6">
+      <h2 class="text-lg font-bold text-ink-900">咨询与报修</h2>
+      <p class="mt-2 text-sm leading-relaxed text-ink-500">
+        为提高沟通效率，我们暂未开通在线留言。请直接来电或添加微信，
+        值班人员会立即响应。
+      </p>
+
+      <div class="mt-5 space-y-3">
+        {tel && (
+          <a
+            href={`tel:${tel}`}
+            class="flex items-center justify-between rounded-lg bg-brand-600 px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            <span>电话咨询</span>
+            <span>{tel}</span>
+          </a>
+        )}
+        <a
+          href="/contact/#wechat"
+          class="flex items-center justify-between rounded-lg border border-ink-200 px-5 py-3.5 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-600"
+        >
+          <span>添加微信</span>
+          <span class="text-ink-400">扫码或搜号</span>
+        </a>
+      </div>
+
+      <p class="mt-4 text-xs leading-relaxed text-ink-400">
+        如需开通在线留言，请提供表单接收服务地址，我们会在配置后启用。
+      </p>
+    </div>
+  )
+}

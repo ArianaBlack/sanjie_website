@@ -1,0 +1,21 @@
+---
+interface Props {
+  standards: string[];
+}
+
+const { standards } = Astro.props;
+---
+
+<ul class="grid gap-2 sm:grid-cols-2">
+  {
+    standards.map((std) => (
+      <li class="flex items-start gap-3 rounded-lg border border-ink-100 bg-ink-50/60 px-4 py-3">
+        <svg class="mt-0.5 h-4 w-4 shrink-0 text-ink-400" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 2h5l3 3v9H4V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+          <path d="M9 2v3h3" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+        </svg>
+        <span class="text-sm leading-relaxed text-ink-600">{std}</span>
+      </li>
+    ))
+  }
+</ul>

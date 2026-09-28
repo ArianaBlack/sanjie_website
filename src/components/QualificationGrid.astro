@@ -1,0 +1,143 @@
+---
+import type { ImageMetadata } from 'astro';
+import type { QualificationEntry } from '../lib/content';
+
+interface Props {
+  items: QualificationEntry[];
+}
+
+const { items } = Astro.props;
+
+/** 按 category 分组，保持固定顺序 */
+const CATEGORY_ORDER = [
+  '主体资质',
+  '行业资质',
+  '体系认证',
+  '人员证书',
+  '荣誉奖项',
+  '协会会员',
+] as const;
+
+const grouped = CATEGORY_ORDER.map((category) => ({
+  category,
+  list: items.filter((item) => item.data.category === category),
+})).filter((group) => group.list.length > 0);
+---
+
+{
+  grouped.map((group) => (
+    <section class="mb-12">
+      <h2 class="mb-5 text-lg font-bold text-ink-900">{group.category}</h2>
+
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {group.list.map((item) => {
+          const img = item.data.image as ImageMetadata | undefined;
+          return (
+            <figure class="overflow-hidden rounded-xl border border-ink-100 bg-white">
+              {img ? (
+                <button
+                  type="button"
+                  class="cert-trigger block w-full cursor-zoom-in"
+                  data-src={img.src}
+                  data-alt={item.data.title}
+                  aria-label={`放大查看 ${item.data.title}`}
+                >
+                  <img
+                    src={img.src}
+                    alt={item.data.title}
+                    width={img.width}
+                    height={img.height}
+                    loading="lazy"
+                    decoding="async"
+                    class="aspect-[4/3] w-full bg-ink-50 object-contain"
+                  />
+                </button>
+              ) : (
+                <div
+                  class="grid aspect-[4/3] w-full place-items-center bg-gradient-to-br from-ink-100 to-ink-200"
+                  aria-hidden="true"
+                >
+                  <span class="text-xs text-ink-400">待补充证书扫描件</span>
+                </div>
+              )}
+
+              <figcaption class="p-4">
+                <p class="text-sm font-semibold text-ink-900">{item.data.title}</p>
+                <dl class="mt-2 space-y-1 text-xs text-ink-400">
+                  <div class="flex gap-1.5">
+                    <dt class="shrink-0">发证机关</dt>
+                    <dd>{item.data.issuer}</dd>
+                  </div>
+                  {item.data.number && (
+                    <div class="flex gap-1.5">
+                      <dt class="shrink-0">证书编号</dt>
+                      <dd class="break-all">{item.data.number}</dd>
+                    </div>
+                  )}
+                  {item.data.validUntil && (
+                    <div class="flex gap-1.5">
+                      <dt class="shrink-0">有效期至</dt>
+                      <dd>{item.data.validUntil}</dd>
+                    </div>
+                  )}
+                </dl>
+              </figcaption>
+            </figure>
+          );
+        })}
+      </div>
+    </section>
+  ))
+}
+
+<!-- 证书大图查看器：纯 CSS + 极少 JS，不引入灯箱库 -->
+<div
+  id="cert-lightbox"
+  class="fixed inset-0 z-[60] hidden items-center justify-center bg-ink-900/80 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-label="证书大图"
+>
+  <button
+    type="button"
+    id="cert-close"
+    class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+    aria-label="关闭"
+  >
+    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+  </button>
+  <img id="cert-image" src="" alt="" class="max-h-full max-w-full rounded-lg object-contain" />
+</div>
+
+<script>
+  const lightbox = document.getElementById('cert-lightbox');
+  const img = document.getElementById('cert-image') as HTMLImageElement | null;
+  const closeBtn = document.getElementById('cert-close');
+
+  const close = () => {
+    lightbox?.classList.add('hidden');
+    lightbox?.classList.remove('flex');
+    document.body.style.overflow = '';
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('.cert-trigger').forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      if (!lightbox || !img) return;
+      img.src = trigger.dataset.src ?? '';
+      img.alt = trigger.dataset.alt ?? '';
+      lightbox.classList.remove('hidden');
+      lightbox.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  closeBtn?.addEventListener('click', close);
+  lightbox?.addEventListener('click', (e) => {
+    if (e.target === lightbox) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+</script>

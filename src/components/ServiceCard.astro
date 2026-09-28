@@ -1,0 +1,51 @@
+---
+import type { ServiceEntry } from '../lib/content';
+
+interface Props {
+  service: ServiceEntry;
+  /** 首页用 larger 突出显示 */
+  size?: 'default' | 'large';
+}
+
+const { service, size = 'default' } = Astro.props;
+---
+
+<a
+  href={`/services/${service.id}/`}
+  class="card-glow card-topline group flex flex-col rounded-xl p-6"
+>
+  <div class="flex items-center gap-3">
+    <span
+      class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-base font-bold text-brand-600 transition-all duration-300 group-hover:bg-brand-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-brand-500/30"
+      style="font-family: var(--font-display)"
+      aria-hidden="true"
+    >
+      {service.data.navLabel.slice(0, 1)}
+    </span>
+    <h3
+      class:list={[
+        'font-bold text-ink-900',
+        size === 'large' ? 'text-lg' : 'text-base',
+      ]}
+    >
+      {service.data.navLabel}
+    </h3>
+  </div>
+
+  <p class="mt-4 flex-1 text-sm leading-relaxed text-ink-500">{service.data.tagline}</p>
+
+  {service.data.audience.length > 0 && (
+    <ul class="mt-4 flex flex-wrap gap-1.5">
+      {service.data.audience.slice(0, 4).map((tag) => (
+        <li class="rounded bg-ink-50 px-2 py-1 text-xs text-ink-500">{tag}</li>
+      ))}
+    </ul>
+  )}
+
+  <span class="mt-5 inline-flex items-center gap-1 text-sm font-medium text-brand-600">
+    了解详情
+    <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M6 3.5L10.5 8L6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </span>
+</a>

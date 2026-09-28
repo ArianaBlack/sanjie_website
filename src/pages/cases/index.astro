@@ -1,0 +1,179 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { getCases, getServices, getServiceLabels } from '../../lib/content';
+
+const cases = await getCases();
+const services = await getServices();
+const labels = await getServiceLabels();
+
+/** 只保留真正有案例的业务，避免出现点了没内容的筛选按钮 */
+const presentCategories = services.filter((s) =>
+  cases.some((c) => c.data.category === s.id)
+);
+
+const PROJECT_TYPES = [
+  '住宅',
+  '商业综合体',
+  '写字楼',
+  '酒店',
+  '医院',
+  '学校',
+  '厂房工业',
+  '仓储物流',
+  '数据中心',
+  '地下车库',
+  '市政公共',
+  '其他',
+];
+
+const presentTypes = PROJECT_TYPES.filter((t) =>
+  cases.some((c) => c.data.projectType === t)
+);
+---
+
+<PageLayout
+  title="工程案例"
+  subtitle="消防是关乎生命安全的工程，做过什么比说过什么更重要。以下是我们承接过的部分项目。"
+  crumbs={[{ label: '首页', href: '/' }, { label: '工程案例' }]}
+  description="三杰消防承接的消防施工、改造、维保工程案例，涵盖住宅、商业综合体、厂房、医院、学校等各类建筑。"
+>
+  <section class="mx-auto max-w-6xl px-4 py-12">
+    {
+      cases.length === 0 ? (
+        <div class="rounded-xl border border-dashed border-ink-200 bg-ink-50/60 p-10 text-center">
+          <p class="font-medium text-ink-700">案例整理中</p>
+          <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-ink-400">
+            我们正在整理项目资料与现场照片。如需了解我们在同类项目上的经验，
+            欢迎直接联系我们。
+          </p>
+          <a
+            href="/contact/"
+            class="mt-5 inline-flex rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            联系我们
+          </a>
+        </div>
+      ) : (
+        <>
+          {/* 筛选器：构建时静态渲染 + 极少客户端 JS，不引入框架 */}
+          <div class="mb-8 space-y-4">
+            {presentCategories.length > 1 && (
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm text-ink-400">业务</span>
+                <button
+                  type="button"
+                  data-filter-group="category"
+                  data-filter-value=""
+                  class="filter-btn rounded-full border border-brand-300 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700"
+                >
+                  全部
+                </button>
+                {presentCategories.map((service) => (
+                  <button
+                    type="button"
+                    data-filter-group="category"
+                    data-filter-value={service.id}
+                    class="filter-btn rounded-full border border-ink-200 px-4 py-1.5 text-sm text-ink-600 transition-colors hover:border-brand-300 hover:text-brand-600"
+                  >
+                    {service.data.navLabel}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {presentTypes.length > 1 && (
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm text-ink-400">类型</span>
+                <button
+                  type="button"
+                  data-filter-group="type"
+                  data-filter-value=""
+                  class="filter-btn rounded-full border border-brand-300 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700"
+                >
+                  全部
+                </button>
+                {presentTypes.map((type) => (
+                  <button
+                    type="button"
+                    data-filter-group="type"
+                    data-filter-value={type}
+                    class="filter-btn rounded-full border border-ink-200 px-4 py-1.5 text-sm text-ink-600 transition-colors hover:border-brand-300 hover:text-brand-600"
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <p id="case-count" class="mb-5 text-sm text-ink-400">
+            共 {cases.length} 个案例
+          </p>
+
+          <div id="case-grid" class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {cases.map((item) => (
+              <div data-category={item.data.category} data-type={item.data.projectType}>
+                <CaseCard item={item} labels={labels} />
+              </div>
+            ))}
+          </div>
+
+          <p id="case-empty" class="hidden py-16 text-center text-ink-400">
+            没有符合条件的案例。
+          </p>
+        </>
+      )
+    }
+  </section>
+
+  <CtaBanner />
+</PageLayout>
+
+<script>
+  const state: Record<string, string> = { category: '', type: '' };
+  const grid = document.getElementById('case-grid');
+  const items = grid ? Array.from(grid.children) : [];
+  const count = document.getElementById('case-count');
+  const empty = document.getElementById('case-empty');
+
+  const apply = () => {
+    let visible = 0;
+
+    items.forEach((node) => {
+      const el = node as HTMLElement;
+      const okCategory = !state.category || el.dataset.category === state.category;
+      const okType = !state.type || el.dataset.type === state.type;
+      const show = okCategory && okType;
+      el.classList.toggle('hidden', !show);
+      if (show) visible += 1;
+    });
+
+    if (count) count.textContent = `共 ${visible} 个案例`;
+    empty?.classList.toggle('hidden', visible > 0);
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('.filter-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const group = btn.dataset.filterGroup;
+      if (!group) return;
+      state[group] = btn.dataset.filterValue ?? '';
+
+      // 同一组内的按钮切换选中样式
+      document
+        .querySelectorAll<HTMLButtonElement>(`.filter-btn[data-filter-group="${group}"]`)
+        .forEach((sibling) => {
+          const active = sibling === btn;
+          sibling.classList.toggle('border-brand-300', active);
+          sibling.classList.toggle('bg-brand-50', active);
+          sibling.classList.toggle('text-brand-700', active);
+          sibling.classList.toggle('font-medium', active);
+          sibling.classList.toggle('border-ink-200', !active);
+          sibling.classList.toggle('text-ink-600', !active);
+        });
+
+      apply();
+    });
+  });
+</script>

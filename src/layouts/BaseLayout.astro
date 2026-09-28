@@ -1,0 +1,73 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FloatingContact from '../components/FloatingContact.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { SITE } from '../data/site';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  noindex?: boolean;
+  ogImage?: string;
+  /** 额外的结构化数据 */
+  jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+
+const { title, description, keywords, noindex, ogImage, jsonLd } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead
+      title={title}
+      description={description}
+      keywords={keywords}
+      noindex={noindex}
+      ogImage={ogImage}
+    />
+    <JsonLd data={jsonLd} />
+  </head>
+
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-white"
+    >
+      跳到主要内容
+    </a>
+
+    <Header />
+
+    <!-- 移动端底部有固定转化条，留出空间避免遮挡正文 -->
+    <main id="main" class="flex-1 pb-16 lg:pb-0">
+      <slot />
+    </main>
+
+    <Footer />
+    <FloatingContact />
+
+    {/* 滚动进场 + 数字滚动。渐进增强：JS 不可用时内容照常显示 */}
+    <script>
+      import '../scripts/motion';
+    </script>
+
+    {
+      SITE.baiduTongjiId && (
+        <script is:inline>
+          {`var _hmt = _hmt || [];
+          (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?${SITE.baiduTongjiId}";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+          })();`}
+        </script>
+      )
+    }
+  </body>
+</html>

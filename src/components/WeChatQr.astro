@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets';
+/*
+  微信二维码 —— 联系页与页脚共用。
+
+  图片源文件是公司提供的微信名片截图（925×1182 竖版），
+  内容其实是 JPEG，原文件名扩展名写成了 .png，归档时已改为 .jpg。
+
+  用 Astro 的 <Image> 而不是 <img>：源图 253KB，
+  按实际显示尺寸生成优化版本，页脚那个 96px 的小图不会拖慢首屏。
+*/
+import wechatQr from '../assets/contact/wechat-qr.jpg';
+
+interface Props {
+  /** 显示宽度（CSS 像素），高度按原图比例自动 */
+  width?: number;
+  /** 是否在二维码下方显示说明文字 */
+  caption?: string | false;
+}
+
+const { width = 180, caption = '微信扫码咨询' } = Astro.props;
+---
+
+<figure class="inline-flex flex-col items-center">
+  <Image
+    src={wechatQr}
+    alt="微信咨询二维码"
+    width={width}
+    class="rounded-lg border border-ink-100 bg-white"
+    loading="lazy"
+  />
+  {caption && <figcaption class="mt-2 text-center text-xs text-ink-500">{caption}</figcaption>}
+</figure>

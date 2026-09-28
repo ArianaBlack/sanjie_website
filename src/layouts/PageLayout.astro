@@ -1,0 +1,29 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import type { Crumb } from '../components/Breadcrumb.astro';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  crumbs?: Crumb[];
+  description?: string;
+  keywords?: string[];
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+
+const { title, subtitle, crumbs, description, keywords, noindex, jsonLd } = Astro.props;
+---
+
+<BaseLayout
+  title={title}
+  description={description ?? subtitle}
+  keywords={keywords}
+  noindex={noindex}
+  jsonLd={jsonLd}
+>
+  <PageHero title={title} subtitle={subtitle} crumbs={crumbs} />
+
+  <slot />
+</BaseLayout>

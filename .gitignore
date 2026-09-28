@@ -1,0 +1,26 @@
+# 构建产物
+dist/
+.astro/
+node_modules/
+
+# 素材收件箱 —— 原始素材体积大（几百 MB），不入库，避免拖慢每次 CI 构建的 clone
+# 注：这意味着 web_material/ 只在本地，请自行做好备份
+web_material/
+
+# 环境变量
+.env
+.env.production
+.env.local
+
+# 编辑器与系统
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Cloudflare
+.wrangler/
+
+# 图片问答用的临时对照图，确认完即可删
+_qa/

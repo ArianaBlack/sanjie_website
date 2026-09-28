@@ -1,0 +1,320 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import CaseCard from '../components/CaseCard.astro';
+import StatsBar from '../components/StatsBar.astro';
+import FaqAccordion from '../components/FaqAccordion.astro';
+import CtaBanner from '../components/CtaBanner.astro';
+import { SITE, PRIMARY_TEL } from '../data/site';
+import { getServices, getCases, getServiceLabels } from '../lib/content';
+import { getPublishedCenters, groupByRegion, countCities } from '../lib/centers';
+
+const services = await getServices();
+const labels = await getServiceLabels();
+const allCases = await getCases();
+/**
+ * 首页精选案例：只挑有配图的。
+ * 没有 cover 的案例（如尚未拿到照片的文物古建项目）在卡片里会渲染成灰色占位块，
+ * 放在首页第一屏很掉分，因此直接排除，其余在 /cases/ 列表页照常展示。
+ */
+const featuredCases = allCases.filter((c) => c.data.cover).slice(0, 3);
+const centers = await getPublishedCenters();
+const regionGroups = groupByRegion(centers);
+
+/** 首页 FAQ：从各业务页的问答里汇总，最多 6 条 */
+const faqs = services.flatMap((s) => s.data.faqs).slice(0, 6);
+
+const isPlaceholder = (v: string) => !v || v.includes('待填写');
+const tel = PRIMARY_TEL;
+
+/*
+  首屏主标题：公司填了一句话主营业务就用它；
+  没填时退回到由业务名拼成的客观陈述，避免页面上出现「【待填写】」。
+*/
+const headline = isPlaceholder(SITE.tagline)
+  ? services.map((s) => s.data.navLabel).join(' · ')
+  : SITE.tagline;
+
+/*
+  把标题从第一个逗号处拆成两截，后半截用渐变文字。
+  「专注消防工程施工与维保，立足长沙面向湖南」
+   → 主标题「专注消防工程施工与维保」 + 渐变强调「立足长沙面向湖南」
+*/
+const commaIndex = headline.search(/[，,]/);
+const headlineMain = commaIndex > 0 ? headline.slice(0, commaIndex) : headline;
+const headlineAccent = commaIndex > 0 ? headline.slice(commaIndex + 1) : '';
+
+/*
+  首屏用 50 字版简介。150 字版在首屏要占 5 行，会把主视觉压得很重；
+  150 字版留给「关于我们」页面。
+*/
+const intro = isPlaceholder(SITE.intro.short)
+  ? '为住宅、商业、工业等各类建筑提供消防工程施工、改造、维保、技术咨询与灭火器充装服务。'
+  : SITE.intro.short;
+
+/** 由真实成立年份推导，不是承诺性表述 */
+const yearsInBusiness = SITE.foundedYear
+  ? new Date().getFullYear() - SITE.foundedYear
+  : null;
+---
+
+<BaseLayout description={isPlaceholder(SITE.intro.short) ? intro : SITE.intro.short}>
+  <!-- ============ 首屏 ============ -->
+  <section class="bg-hero noise relative overflow-hidden">
+    <!-- 网格底纹 -->
+    <div class="grid-pattern pointer-events-none absolute inset-0" aria-hidden="true"></div>
+
+    <!-- 漂浮光晕：纯 CSS 动画，不占 JS 主线程 -->
+    <div
+      class="orb h-80 w-80"
+      style="top:-6rem; right:8%; background: rgba(56,189,248,0.28);"
+      aria-hidden="true"
+    >
+    </div>
+    <div
+      class="orb h-96 w-96"
+      style="bottom:-8rem; left:-5rem; background: rgba(59,142,246,0.22); animation-delay:-7s;"
+      aria-hidden="true"
+    >
+    </div>
+    <div
+      class="orb h-64 w-64"
+      style="top:40%; right:38%; background: rgba(125,211,252,0.14); animation-delay:-13s;"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="relative mx-auto max-w-6xl px-4 py-24 md:py-32">
+      <div class="grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+        <!-- 左：主张 -->
+        <div>
+          <p
+            class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs text-brand-200 backdrop-blur"
+          >
+            <span class="h-1.5 w-1.5 rounded-full bg-accent-400" aria-hidden="true"></span>
+            消防设施工程专业承包一级资质
+          </p>
+
+          <h1 class="mt-7 text-4xl font-bold leading-[1.15] text-white md:text-6xl">
+            {headlineMain}
+            {
+              headlineAccent && (
+                <>
+                  <br />
+                  <span class="text-gradient-light">{headlineAccent}</span>
+                </>
+              )
+            }
+          </h1>
+
+          <p class="mt-7 max-w-xl text-base leading-relaxed text-brand-100 md:text-lg">
+            {intro}
+          </p>
+
+          <div class="mt-10 flex flex-wrap gap-3">
+            <a
+              href={tel ? `tel:${tel}` : '/contact/'}
+              class="btn-gradient rounded-xl px-8 py-4 text-sm font-semibold text-white"
+            >
+              电话咨询{tel ? ` ${tel}` : ''}
+            </a>
+            <a
+              href="/services/"
+              class="rounded-xl border border-white/25 bg-white/5 px-8 py-4 text-sm font-semibold text-white backdrop-blur transition-colors hover:border-white/40 hover:bg-white/10"
+            >
+              查看业务范围
+            </a>
+          </div>
+
+          {
+            yearsInBusiness && yearsInBusiness > 0 && (
+              <p class="mt-7 text-sm text-brand-200">
+                成立于 {SITE.foundedYear} 年 · 深耕消防安全领域 {yearsInBusiness} 年 ·
+                服务{regionGroups.length > 0 ? `${regionGroups.length} 个大区` : '湖南及周边'}
+              </p>
+            )
+          }
+        </div>
+
+        <!-- 右：玻璃信息卡 -->
+        <div class="glass rounded-2xl p-7">
+          <p class="text-xs font-medium tracking-wide text-brand-200">服务保障</p>
+
+          <ul class="mt-5 space-y-5">
+            {
+              SITE.highlights.slice(0, 3).map((item) => (
+                <li class="flex gap-4">
+                  <span
+                    class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-accent-300"
+                    aria-hidden="true"
+                  >
+                    <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none">
+                      <path
+                        d="M3 8.5l3.5 3.5L13 4.5"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <div>
+                    <p class="font-semibold text-white" style="font-family: var(--font-display)">
+                      {item.title}
+                    </p>
+                    <p class="mt-1 text-sm leading-relaxed text-brand-100">{item.desc}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+
+          <div class="mt-7 border-t border-white/10 pt-5">
+            <p class="text-xs text-brand-200">24 小时值班电话</p>
+            <a
+              href={`tel:${SITE.contact.emergency}`}
+              class="mt-1 block text-xl font-bold text-white transition-colors hover:text-accent-300"
+              style="font-family: var(--font-display)"
+            >
+              {SITE.contact.emergency}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 五大业务 ============ -->
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <SectionHeading
+      title="业务范围"
+      subtitle="从建设施工到日常运维，覆盖建筑消防的全生命周期。"
+    />
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {services.map((service) => <ServiceCard service={service} />)}
+    </div>
+  </section>
+
+  <!-- ============ 数字条 + 服务保障 ============ -->
+  {
+    (SITE.stats.length > 0 || SITE.highlights.length > 0) && (
+      <section class="border-y border-ink-100 bg-ink-50/60">
+        <div class="mx-auto max-w-6xl px-4 py-16">
+          {SITE.stats.length > 0 && (
+            <div class="mb-14">
+              <StatsBar stats={SITE.stats} />
+            </div>
+          )}
+
+          {SITE.highlights.length > 0 && (
+            <>
+              <SectionHeading title="服务保障" />
+              <ul class="grid gap-5 md:grid-cols-2">
+                {SITE.highlights.map((item) => (
+                  <li class="flex gap-3 rounded-xl border border-ink-100 bg-white p-5">
+                    <span
+                      class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-50 text-brand-600"
+                      aria-hidden="true"
+                    >
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none">
+                        <path
+                          d="M2.5 6.2l2.4 2.4L9.5 3.8"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <div>
+                      <h3 class="font-semibold text-ink-900">{item.title}</h3>
+                      <p class="mt-1 text-sm leading-relaxed text-ink-500">{item.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ 维保合作中心 ============ -->
+  {
+    centers.length > 0 && (
+      <section class="mx-auto max-w-6xl px-4 py-16">
+        <SectionHeading
+          title="维保合作中心"
+          subtitle={`已在 ${regionGroups.length} 个大区、${countCities(centers)} 个城市设有服务网点，按就近原则安排巡检与应急响应。`}
+        />
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {regionGroups.map((group) => (
+            <a
+              href={`/centers/#${group.anchor}`}
+              class="card-glow card-topline group rounded-xl p-5"
+            >
+              <div class="flex items-baseline justify-between">
+                <h3 class="font-bold text-ink-900">{group.region}</h3>
+                <span class="text-sm text-ink-400">{group.total} 家</span>
+              </div>
+              <p class="mt-2 text-sm text-ink-500">
+                {group.cities.map((c) => c.city).join('、')}
+              </p>
+            </a>
+          ))}
+        </div>
+
+        <div class="mt-8 text-center">
+          <a
+            href="/centers/"
+            class="inline-flex items-center gap-2 rounded-lg border border-ink-200 px-6 py-3 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-600"
+          >
+            查看全部合作中心
+          </a>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ 精选案例 ============ -->
+  {
+    featuredCases.length > 0 && (
+      <section class="border-y border-ink-100 bg-ink-50/60">
+        <div class="mx-auto max-w-6xl px-4 py-16">
+          <SectionHeading
+            title="工程案例"
+            subtitle="看看我们做过哪些类型的项目。"
+          />
+          <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {featuredCases.map((item) => (
+              <CaseCard item={item} labels={labels} />
+            ))}
+          </div>
+          <div class="mt-8 text-center">
+            <a
+              href="/cases/"
+              class="inline-flex items-center gap-2 rounded-lg border border-ink-200 bg-white px-6 py-3 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-600"
+            >
+              查看全部案例
+            </a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ 常见问题 ============ -->
+  {
+    faqs.length > 0 && (
+      <section class="mx-auto max-w-6xl px-4 py-16">
+        <SectionHeading title="常见问题" subtitle="客户常问的几个问题。" />
+        <FaqAccordion faqs={faqs} jsonLd={false} />
+      </section>
+    )
+  }
+
+  <CtaBanner />
+</BaseLayout>

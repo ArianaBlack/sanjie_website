@@ -1,0 +1,104 @@
+---
+import { PRIMARY_TEL } from '../data/site';
+
+/*
+  右侧悬浮联系条（桌面端）—— 中文企业站的转化标配。
+  移动端改为底部固定条，见下方。
+*/
+
+const tel = PRIMARY_TEL;
+---
+
+<!-- 桌面端：右侧悬浮 -->
+<div class="fixed right-4 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-2 lg:flex">
+  {
+    tel && (
+      <a
+        href={`tel:${tel}`}
+        class="group flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700"
+        aria-label={`拨打服务热线 ${tel}`}
+      >
+        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path
+            d="M6.5 3h-2A1.5 1.5 0 003 4.5C3 11.4 8.1 16.5 15 16.5a1.5 1.5 0 001.5-1.5v-2l-3.2-1.1-1.3 1.6a11 11 0 01-4.5-4.5l1.6-1.3L6.5 3z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </a>
+    )
+  }
+
+  <a
+    href="/contact/"
+    class="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-ink-800 text-white shadow-lg transition-colors hover:bg-ink-900"
+    aria-label="查看联系方式与微信二维码"
+  >
+    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 3.5c-3.6 0-6.5 2.2-6.5 5 0 1.6.9 3 2.4 4L5.3 15l2.7-1.3c.6.1 1.3.2 2 .2 3.6 0 6.5-2.2 6.5-5s-2.9-5.4-6.5-5.4z"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linejoin="round"
+      />
+      <circle cx="8" cy="8.5" r="0.9" fill="currentColor" />
+      <circle cx="12" cy="8.5" r="0.9" fill="currentColor" />
+    </svg>
+  </a>
+
+  <button
+    type="button"
+    id="back-to-top"
+    class="flex h-12 w-12 items-center justify-center rounded-lg bg-ink-200 text-ink-700 shadow-lg transition-colors hover:bg-ink-300"
+    aria-label="回到顶部"
+  >
+    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M10 16V5M5.5 9.5L10 5l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+</div>
+
+<!-- 移动端：底部固定转化条 -->
+<div
+  class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-ink-200 bg-white/95 backdrop-blur lg:hidden"
+  style="padding-bottom: env(safe-area-inset-bottom)"
+>
+  <a
+    href={tel ? `tel:${tel}` : '/contact/'}
+    class="flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-white"
+    style="background-color: var(--color-brand-600)"
+  >
+    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M6.5 3h-2A1.5 1.5 0 003 4.5C3 11.4 8.1 16.5 15 16.5a1.5 1.5 0 001.5-1.5v-2l-3.2-1.1-1.3 1.6a11 11 0 01-4.5-4.5l1.6-1.3L6.5 3z"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linejoin="round"
+      />
+    </svg>
+    一键拨号
+  </a>
+  <a
+    href="/contact/"
+    class="flex items-center justify-center gap-2 border-l border-ink-200 py-3.5 text-sm font-semibold text-ink-700"
+  >
+    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 3.5c-3.6 0-6.5 2.2-6.5 5 0 1.6.9 3 2.4 4L5.3 15l2.7-1.3c.6.1 1.3.2 2 .2 3.6 0 6.5-2.2 6.5-5s-2.9-5.4-6.5-5.4z"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linejoin="round"
+      />
+    </svg>
+    加微信
+  </a>
+</div>
+
+<script>
+  const backToTop = document.getElementById('back-to-top');
+  backToTop?.addEventListener('click', () => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  });
+</script>

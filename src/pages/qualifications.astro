@@ -1,0 +1,101 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import QualificationGrid from '../components/QualificationGrid.astro';
+import CtaBanner from '../components/CtaBanner.astro';
+import { SITE } from '../data/site';
+import { getQualifications } from '../lib/content';
+
+const items = await getQualifications();
+
+const isPlaceholder = (v: string) => !v || v.includes('待填写');
+---
+
+<PageLayout
+  title="资质与荣誉"
+  subtitle="消防是强监管行业，资质与持证情况是选择服务商时应当先看的。以下证书均可点击查看原件。"
+  crumbs={[{ label: '首页', href: '/' }, { label: '资质荣誉' }]}
+  description={`${SITE.name}的营业执照、行业资质、体系认证、人员持证与荣誉情况。`}
+>
+  <!-- 主体信息 -->
+  <section class="mx-auto max-w-6xl px-4 py-12">
+    <dl class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="rounded-xl border border-ink-100 bg-white p-5">
+        <dt class="text-sm text-ink-400">公司全称</dt>
+        <dd class="mt-1.5 font-medium text-ink-800">{SITE.legalName}</dd>
+      </div>
+      {
+        SITE.foundedYear && (
+          <div class="rounded-xl border border-ink-100 bg-white p-5">
+            <dt class="text-sm text-ink-400">成立年份</dt>
+            <dd class="mt-1.5 font-medium text-ink-800">{SITE.foundedYear} 年</dd>
+          </div>
+        )
+      }
+      {
+        !isPlaceholder(SITE.contact.address) && (
+          <div class="rounded-xl border border-ink-100 bg-white p-5">
+            <dt class="text-sm text-ink-400">注册地址</dt>
+            <dd class="mt-1.5 font-medium text-ink-800">{SITE.contact.address}</dd>
+          </div>
+        )
+      }
+    </dl>
+  </section>
+
+  <!-- 证书网格 -->
+  <section class="mx-auto max-w-6xl px-4 pb-8">
+    {
+      items.length > 0 ? (
+        <QualificationGrid items={items} />
+      ) : (
+        <div class="rounded-xl border border-dashed border-ink-200 bg-ink-50/60 p-10 text-center">
+          <p class="font-medium text-ink-700">证书信息整理中</p>
+          <p class="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-ink-400">
+            我们正在整理营业执照、行业资质与体系认证材料。
+            如需核验具体资质，欢迎直接联系我们索取。
+          </p>
+          <a
+            href="/contact/"
+            class="mt-5 inline-flex rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            联系索取资质材料
+          </a>
+        </div>
+      )
+    }
+  </section>
+
+  <!-- 维保业务合规说明 -->
+  <section class="mx-auto max-w-6xl px-4 pb-14">
+    <div class="rounded-xl border border-ink-100 bg-ink-50/60 p-6">
+      <h2 class="text-base font-bold text-ink-900">关于消防维保资质的说明</h2>
+      <p class="mt-3 text-sm leading-relaxed text-ink-600">
+        消防设施维护保养检测资质自 2019 年起，已由原来的行政许可制改为
+        <strong class="font-semibold text-ink-800">从业条件备案制</strong>。
+        消防技术服务机构的合规情况，以「社会消防技术服务信息系统」的公示信息为准。
+      </p>
+      <!--
+        ⚠️ 这里**不能**写「可以查询到我们的备案信息」。
+        截至 2026-09-22，公司提供的材料里没有任何「社会消防技术服务信息系统」
+        的公示截图，无法证实已完成备案。写上去就是虚假宣传。
+        拿到公示截图后，可以在此处补一句明确的备案信息。
+      -->
+      <p class="mt-3 text-sm leading-relaxed text-ink-600">
+        建议在委托消防维保或检测服务前，先在该系统中核验服务机构的从业条件备案情况、服务类型与人员配置，这是一条公开、可自行查验的途径。
+      </p>
+      <a
+        href="https://www.shhxf119.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+      >
+        前往社会消防技术服务信息系统核验
+        <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M6 3.5L10.5 8L6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <CtaBanner />
+</PageLayout>

@@ -1,0 +1,48 @@
+---
+import { SITE } from '../data/site';
+
+interface Props {
+  /** 额外的结构化数据对象，会与全站 Organization 一起输出 */
+  data?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+
+const { data } = Astro.props;
+
+/*
+  全站 Organization + LocalBusiness 结构化数据。
+  只在信息已填写时输出对应字段 —— 输出空字符串或占位文案反而会干扰搜索引擎。
+*/
+const hasRealValue = (v: string) => Boolean(v) && !v.includes('待填写');
+
+const organization: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.name,
+  url: Astro.site?.href,
+  description: hasRealValue(SITE.intro.short) ? SITE.intro.short : undefined,
+};
+
+if (hasRealValue(SITE.legalName)) organization.legalName = SITE.legalName;
+
+const telephone = [SITE.contact.hotline, SITE.contact.phone].find(hasRealValue);
+if (telephone) organization.telephone = telephone;
+
+if (hasRealValue(SITE.contact.address)) {
+  organization.address = {
+    '@type': 'PostalAddress',
+    streetAddress: SITE.contact.address,
+    addressCountry: 'CN',
+  };
+}
+
+const payloads = [organization, ...(data ? (Array.isArray(data) ? data : [data]) : [])];
+---
+
+{
+  payloads.map((payload) => (
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(payload, (_k, v) => (v === undefined ? undefined : v))}
+    />
+  ))
+}

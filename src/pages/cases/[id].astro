@@ -1,0 +1,302 @@
+---
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import PageLayout from '../../layouts/PageLayout.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { getCases, getServiceLabels } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const cases = await getCases();
+  return cases.map((item) => ({
+    params: { id: item.id },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const { data } = item;
+const { Content } = await render(item);
+const labels = await getServiceLabels();
+const all = await getCases();
+
+/** 同类推荐：优先同业务，其次同项目类型 */
+const related = all
+  .filter((c) => c.id !== item.id)
+  .sort((a, b) => {
+    const scoreA = (a.data.category === data.category ? 2 : 0) + (a.data.projectType === data.projectType ? 1 : 0);
+    const scoreB = (b.data.category === data.category ? 2 : 0) + (b.data.projectType === data.projectType ? 1 : 0);
+    return scoreB - scoreA;
+  })
+  .slice(0, 3);
+
+const cover = data.cover as ImageMetadata | undefined;
+
+/**
+ * 甲方名称：未获公开授权时用脱敏名。
+ * client 字段本身若已经是「某…」的写法就直接沿用，避免渲染成「某住宅」这类读不通的串。
+ */
+const clientLabel = data.clientPublic
+  ? data.client
+  : data.client.startsWith('某')
+    ? data.client
+    : `某${data.projectType}`;
+
+const spec = [
+  { label: '项目类型', value: data.projectType },
+  { label: '项目地点', value: `${data.province}${data.city}` },
+  ...(data.scale ? [{ label: '项目规模', value: data.scale }] : []),
+  ...(data.amount ? [{ label: '合同金额', value: data.amount }] : []),
+  ...(data.completedAt
+    ? [
+        {
+          label: '竣工时间',
+          value: new Intl.DateTimeFormat('zh-CN', {
+            year: 'numeric',
+            month: 'long',
+          }).format(data.completedAt),
+        },
+      ]
+    : []),
+  ...(data.durationDays ? [{ label: '工期', value: `${data.durationDays} 天` }] : []),
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: data.title,
+  description: data.seo.description ?? `${data.title}——${data.projectType}项目，位于${data.province}${data.city}。`,
+  ...(data.completedAt ? { datePublished: data.completedAt.toISOString() } : {}),
+};
+---
+
+<PageLayout
+  title={data.title}
+  description={data.seo.description ?? `${data.title}，${clientLabel}，位于${data.province}${data.city}的${data.projectType}消防工程项目。`}
+  keywords={data.seo.keywords}
+  noindex={data.seo.noindex}
+  crumbs={[
+    { label: '首页', href: '/' },
+    { label: '工程案例', href: '/cases/' },
+    { label: data.title },
+  ]}
+  jsonLd={jsonLd}
+>
+  <section class="mx-auto max-w-6xl px-4 py-12">
+    <div class="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+      <div>
+        {
+          cover && (
+            <Image
+              src={cover}
+              alt={data.title}
+              widths={[640, 1100]}
+              sizes="(min-width: 1024px) 660px, 92vw"
+              class="mb-8 aspect-[16/10] w-full rounded-xl object-cover"
+            />
+          )
+        }
+
+        <!-- 项目难点 / 解决方案 / 成果 —— 最能体现专业度的三块 -->
+        {
+          (data.challenge || data.solution || data.result) && (
+            <div class="mb-10 space-y-5">
+              {data.challenge && (
+                <div class="rounded-xl border border-ink-100 bg-white p-6">
+                  <h2 class="flex items-center gap-2 text-base font-bold text-ink-900">
+                    <span class="grid h-6 w-6 place-items-center rounded-full bg-ink-100 text-xs text-ink-600">
+                      难
+                    </span>
+                    项目难点
+                  </h2>
+                  <p class="mt-3 text-sm leading-relaxed text-ink-600">{data.challenge}</p>
+                </div>
+              )}
+
+              {data.solution && (
+                <div class="rounded-xl border border-brand-100 bg-brand-50/50 p-6">
+                  <h2 class="flex items-center gap-2 text-base font-bold text-ink-900">
+                    <span class="grid h-6 w-6 place-items-center rounded-full bg-brand-600 text-xs text-white">
+                      解
+                    </span>
+                    解决方案
+                  </h2>
+                  <p class="mt-3 text-sm leading-relaxed text-ink-600">{data.solution}</p>
+                </div>
+              )}
+
+              {data.result && (
+                <div class="rounded-xl border border-ink-100 bg-white p-6">
+                  <h2 class="flex items-center gap-2 text-base font-bold text-ink-900">
+                    <span class="grid h-6 w-6 place-items-center rounded-full bg-ink-100 text-xs text-ink-600">
+                      果
+                    </span>
+                    成果与验收
+                  </h2>
+                  <p class="mt-3 text-sm leading-relaxed text-ink-600">{data.result}</p>
+                </div>
+              )}
+            </div>
+          )
+        }
+
+        <div class="prose-cn max-w-none">
+          <Content />
+        </div>
+
+        <!-- 改造前后对比 -->
+        {
+          data.beforeAfter.length > 0 && (
+            <div class="mt-12">
+              <h2 class="mb-5 text-lg font-bold text-ink-900">改造前后对比</h2>
+              <div class="space-y-6">
+                {data.beforeAfter.map((pair) => {
+                  const before = pair.before as ImageMetadata;
+                  const after = pair.after as ImageMetadata;
+                  return (
+                    <figure>
+                      <div class="grid grid-cols-2 gap-3">
+                        <div>
+                          <img
+                            src={before.src}
+                            alt={`${pair.caption ?? ''} 改造前`}
+                            width={before.width}
+                            height={before.height}
+                            loading="lazy"
+                            decoding="async"
+                            class="aspect-[4/3] w-full rounded-lg object-cover"
+                          />
+                          <p class="mt-2 text-center text-xs text-ink-400">改造前</p>
+                        </div>
+                        <div>
+                          <img
+                            src={after.src}
+                            alt={`${pair.caption ?? ''} 改造后`}
+                            width={after.width}
+                            height={after.height}
+                            loading="lazy"
+                            decoding="async"
+                            class="aspect-[4/3] w-full rounded-lg object-cover"
+                          />
+                          <p class="mt-2 text-center text-xs text-brand-600">改造后</p>
+                        </div>
+                      </div>
+                      {pair.caption && (
+                        <figcaption class="mt-2 text-center text-sm text-ink-500">
+                          {pair.caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                })}
+              </div>
+            </div>
+          )
+        }
+
+        <!-- 图集 -->
+        {
+          data.gallery.length > 0 && (
+            <div class="mt-12">
+              <h2 class="mb-5 text-lg font-bold text-ink-900">项目图片</h2>
+              <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                {data.gallery.map((img) => {
+                  const asset = img as ImageMetadata;
+                  return (
+                    <Image
+                      src={asset}
+                      alt={`${data.title}项目图片`}
+                      widths={[360, 720]}
+                      sizes="(min-width: 768px) 220px, 46vw"
+                      loading="lazy"
+                      decoding="async"
+                      class="aspect-[16/10] w-full rounded-lg object-cover"
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )
+        }
+
+        <!-- 甲方评价 -->
+        {
+          data.testimonial && (
+            <blockquote class="mt-12 rounded-xl border-l-4 border-brand-500 bg-ink-50/60 p-6">
+              <p class="text-base leading-relaxed text-ink-700">
+                「{data.testimonial.quote}」
+              </p>
+              <footer class="mt-3 text-sm text-ink-400">
+                —— {data.testimonial.author}
+              </footer>
+            </blockquote>
+          )
+        }
+      </div>
+
+      <!-- 项目概况侧栏 -->
+      <aside class="lg:sticky lg:top-24 lg:self-start">
+        <div class="rounded-xl border border-ink-100 bg-white p-6">
+          <h2 class="text-base font-bold text-ink-900">项目概况</h2>
+          <dl class="mt-4 space-y-3.5 text-sm">
+            <div>
+              <dt class="text-ink-400">甲方</dt>
+              <dd class="mt-0.5 text-ink-700">{clientLabel}</dd>
+            </div>
+            {
+              spec.map((row) => (
+                <div>
+                  <dt class="text-ink-400">{row.label}</dt>
+                  <dd class="mt-0.5 text-ink-700">{row.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+
+          <div class="mt-5 border-t border-ink-100 pt-5">
+            <p class="text-sm text-ink-400">所属业务</p>
+            <a
+              href={`/services/${data.category}/`}
+              class="mt-2 inline-block rounded-full bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100"
+            >
+              {labels.get(data.category) ?? data.category}
+            </a>
+          </div>
+
+          {
+            data.scope.length > 0 && (
+              <div class="mt-5 border-t border-ink-100 pt-5">
+                <p class="text-sm text-ink-400">服务内容</p>
+                <ul class="mt-2 space-y-1.5 text-sm text-ink-600">
+                  {data.scope.map((s) => (
+                    <li class="flex gap-2">
+                      <span class="text-brand-500" aria-hidden="true">·</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </div>
+      </aside>
+    </div>
+
+    <!-- 相关案例 -->
+    {
+      related.length > 0 && (
+        <div class="mt-16 border-t border-ink-100 pt-10">
+          <h2 class="mb-5 text-lg font-bold text-ink-900">相关案例</h2>
+          <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {related.map((rel) => (
+              <CaseCard item={rel} labels={labels} />
+            ))}
+          </div>
+        </div>
+      )
+    }
+  </section>
+
+  <CtaBanner />
+</PageLayout>

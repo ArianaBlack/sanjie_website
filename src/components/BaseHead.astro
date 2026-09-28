@@ -1,0 +1,79 @@
+---
+import { SITE } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  noindex?: boolean;
+  /** og:image 路径。建议 1200×630，≤300KB，否则微信分享卡片不显示缩略图 */
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = SITE.intro.short,
+  keywords = [],
+  noindex = false,
+  ogImage,
+} = Astro.props;
+
+const pageTitle = title ? `${title}｜${SITE.name}` : `${SITE.name}｜${SITE.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = ogImage ? new URL(ogImage, Astro.site).href : undefined;
+
+/*
+  预览部署必须 noindex，否则每个 PR 的预览 URL 都会被搜索引擎收录，造成重复内容。
+  不同构建环境用的变量名不一样，这里都兼容一下。
+*/
+const branch =
+  import.meta.env.WORKERS_CI_BRANCH ??
+  import.meta.env.CF_PAGES_BRANCH ??
+  '';
+const isPreviewDeploy = Boolean(branch) && branch !== 'main';
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+{keywords.length > 0 && <meta name="keywords" content={keywords.join('，')} />}
+
+<!--
+  标题字体：得意黑（Smiley Sans），自托管。
+  已按 unicode-range 切成 59 个分片，浏览器只下载页面实际用到的 2–4 个（约 100–200KB），
+  不是全量 1.9MB。SIL OFL 1.1 协议，可商用。
+  单独一个 <link> 而非内联进主样式表：这个文件几乎不变，可以长期缓存；
+  主样式表每次改内容都会重新生成，内联进来会导致用户反复下载这 25KB。
+-->
+<link rel="stylesheet" href="/fonts/smiley-sans/smiley-sans.css" />
+
+<link rel="canonical" href={canonical} />
+{(noindex || isPreviewDeploy) && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- Open Graph：微信/QQ 分享卡片的来源 -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content="zh_CN" />
+{ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+
+<!--
+  站点图标由品牌盾形标记生成，源文件见 src/assets/brand/
+    favicon.svg      矢量版，现代浏览器优先使用
+    favicon.ico      16/32/48 三尺寸，兼容老浏览器
+    apple-touch-icon.png  iOS 添加到主屏（180×180，蓝底白标）
+    icon-512.png     PWA / 微信分享缩略图
+-->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+<!-- 主题色，影响移动端浏览器地址栏配色 -->
+<meta name="theme-color" content="#1d5fd6" />

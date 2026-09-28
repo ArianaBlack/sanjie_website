@@ -1,0 +1,81 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import type { CaseEntry } from '../lib/content';
+
+interface Props {
+  item: CaseEntry;
+  /** slug → 业务短名 */
+  labels: Map<string, string>;
+}
+
+const { item, labels } = Astro.props;
+const { data } = item;
+const cover = data.cover as ImageMetadata | undefined;
+
+/**
+ * 甲方名称：未获公开授权时用脱敏名。
+ * client 字段本身若已经是「某…」的写法就直接沿用，避免渲染成「某住宅」这类读不通的串。
+ */
+const clientLabel = data.clientPublic
+  ? data.client
+  : data.client.startsWith('某')
+    ? data.client
+    : `某${data.projectType}`;
+---
+
+<article class="card-glow group flex flex-col overflow-hidden rounded-xl">
+  {
+    cover ? (
+      <Image
+        src={cover}
+        alt={data.title}
+        widths={[400, 800]}
+        sizes="(min-width: 1024px) 360px, (min-width: 768px) 45vw, 92vw"
+        loading="lazy"
+        decoding="async"
+        class="aspect-[16/10] w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+      />
+    ) : (
+      <div
+        class="grid aspect-[16/10] w-full place-items-center bg-gradient-to-br from-ink-100 to-ink-200"
+        aria-hidden="true"
+      >
+        <span class="text-sm text-ink-400">{data.projectType}</span>
+      </div>
+    )
+  }
+
+  <div class="flex flex-1 flex-col p-5">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="rounded bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700">
+        {labels.get(data.category) ?? data.category}
+      </span>
+      <span class="rounded bg-ink-50 px-2 py-1 text-xs text-ink-500">{data.projectType}</span>
+    </div>
+
+    <h3 class="mt-3 font-bold leading-snug text-ink-900">
+      <a href={`/cases/${item.id}/`} class="transition-colors hover:text-brand-600">
+        {data.title}
+      </a>
+    </h3>
+
+    {/* shrink-0：规模一栏的值可能很长，不加的话会把「规模」两个字挤成两行 */}
+    <dl class="mt-3 flex-1 space-y-1.5 text-xs text-ink-400">
+      <div class="flex gap-1.5">
+        <dt class="shrink-0">甲方</dt>
+        <dd class="text-ink-500">{clientLabel}</dd>
+      </div>
+      <div class="flex gap-1.5">
+        <dt class="shrink-0">地点</dt>
+        <dd class="text-ink-500">{data.province}{data.city}</dd>
+      </div>
+      {data.scale && (
+        <div class="flex gap-1.5">
+          <dt class="shrink-0">规模</dt>
+          <dd class="text-ink-500">{data.scale}</dd>
+        </div>
+      )}
+    </dl>
+  </div>
+</article>

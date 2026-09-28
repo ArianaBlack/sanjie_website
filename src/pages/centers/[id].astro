@@ -1,0 +1,247 @@
+---
+import { render } from 'astro:content';
+import type { ImageMetadata } from 'astro';
+import PageLayout from '../../layouts/PageLayout.astro';
+import CenterCard from '../../components/CenterCard.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { SITE } from '../../data/site';
+import { getServiceLabels } from '../../lib/content';
+import {
+  getPublishedCenters,
+  siblingCenters,
+  centerRegion,
+} from '../../lib/centers';
+
+export async function getStaticPaths() {
+  const centers = await getPublishedCenters();
+  return centers.map((center) => ({
+    params: { id: center.id },
+    props: { center },
+  }));
+}
+
+const { center } = Astro.props;
+const { data } = center;
+const { Content } = await render(center);
+const labels = await getServiceLabels();
+const all = await getPublishedCenters();
+const siblings = siblingCenters(center, all);
+
+const cover = data.cover as ImageMetadata | undefined;
+
+const region = centerRegion(center);
+
+/** 高德深链：有经纬度就精确打点，没有就退化为地址搜索 */
+const amapUrl = data.coordinates
+  ? `https://uri.amap.com/marker?position=${data.coordinates}&name=${encodeURIComponent(data.name)}&src=sanjie&coordinate=gaode&callnative=1`
+  : `https://uri.amap.com/search?keyword=${encodeURIComponent(data.address)}`;
+
+const isPlaceholder = (v: string) => !v || v.includes('待填写');
+const hotline = isPlaceholder(SITE.contact.hotline) ? '' : SITE.contact.hotline;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: data.name,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: data.address,
+    addressLocality: data.city,
+    addressRegion: data.province,
+    addressCountry: 'CN',
+  },
+  telephone: data.phone,
+  ...(data.coordinates
+    ? {
+        geo: {
+          '@type': 'GeoCoordinates',
+          longitude: data.coordinates.split(',')[0],
+          latitude: data.coordinates.split(',')[1],
+        },
+      }
+    : {}),
+  ...(hotline ? { parentOrganization: { '@type': 'Organization', name: SITE.name } } : {}),
+};
+---
+
+<PageLayout
+  title={data.shortName ?? data.name}
+  subtitle={`${region} · ${data.city}`}
+  description={data.seo.description ??
+    `${data.name}，地址：${data.address}，联系电话：${data.phone}。提供${data.services.map((s) => labels.get(s) ?? s).join('、')}服务。`}
+  keywords={data.seo.keywords}
+  noindex={data.seo.noindex}
+  crumbs={[
+    { label: '首页', href: '/' },
+    { label: '维保合作中心', href: '/centers/' },
+    { label: data.shortName ?? data.name },
+  ]}
+  jsonLd={jsonLd}
+>
+  <section class="mx-auto max-w-6xl px-4 py-12">
+    <div class="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+      <!-- 主内容 -->
+      <div>
+        {
+          cover && (
+            <img
+              src={cover.src}
+              alt={`${data.name}门头`}
+              width={cover.width}
+              height={cover.height}
+              class="mb-8 aspect-[16/9] w-full rounded-xl object-cover"
+            />
+          )
+        }
+
+        <!-- 能力标签 -->
+        <ul class="mb-8 flex flex-wrap gap-2">
+          {
+            data.services.map((slug) => (
+              <li class="rounded-full bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700">
+                {labels.get(slug) ?? slug}
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="prose-cn max-w-none">
+          <Content />
+        </div>
+
+        {
+          data.gallery.length > 0 && (
+            <div class="mt-10">
+              <h2 class="mb-4 text-lg font-bold text-ink-900">场地实景</h2>
+              <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                {data.gallery.map((img) => {
+                  const asset = img as ImageMetadata;
+                  return (
+                    <img
+                      src={asset.src}
+                      alt={`${data.name}场地实景`}
+                      width={asset.width}
+                      height={asset.height}
+                      loading="lazy"
+                      decoding="async"
+                      class="aspect-[4/3] w-full rounded-lg object-cover"
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )
+        }
+      </div>
+
+      <!-- 联系信息侧栏 -->
+      <aside class="lg:sticky lg:top-24 lg:self-start">
+        <div class="rounded-xl border border-ink-100 bg-white p-6">
+          <h2 class="text-base font-bold text-ink-900">联系方式</h2>
+
+          <dl class="mt-4 space-y-4 text-sm">
+            <div>
+              <dt class="text-ink-400">联系电话</dt>
+              <dd class="mt-1">
+                <a
+                  href={`tel:${data.phone}`}
+                  class="text-lg font-semibold text-brand-600 hover:text-brand-700"
+                >
+                  {data.phone}
+                </a>
+              </dd>
+            </div>
+
+            {
+              data.contact && (
+                <div>
+                  <dt class="text-ink-400">联系人</dt>
+                  <dd class="mt-1 text-ink-700">{data.contact}</dd>
+                </div>
+              )
+            }
+
+            <div>
+              <dt class="text-ink-400">营业时间</dt>
+              <dd class="mt-1 text-ink-700">{data.hours}</dd>
+            </div>
+
+            <div>
+              <dt class="text-ink-400">详细地址</dt>
+              <dd class="mt-1 leading-relaxed text-ink-700">{data.address}</dd>
+            </div>
+
+            {
+              data.since && (
+                <div>
+                  <dt class="text-ink-400">成立年份</dt>
+                  <dd class="mt-1 text-ink-700">{data.since} 年</dd>
+                </div>
+              )
+            }
+
+            {
+              data.serviceArea.length > 0 && (
+                <div>
+                  <dt class="text-ink-400">服务范围</dt>
+                  <dd class="mt-1 leading-relaxed text-ink-700">
+                    {data.serviceArea.join('、')}
+                  </dd>
+                </div>
+              )
+            }
+          </dl>
+
+          <div class="mt-6 space-y-2">
+            <a
+              href={`tel:${data.phone}`}
+              class="block rounded-lg bg-brand-600 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+            >
+              一键拨号
+            </a>
+            <a
+              href={amapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="block rounded-lg border border-ink-200 py-3 text-center text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:text-brand-600"
+            >
+              在地图中打开
+            </a>
+          </div>
+        </div>
+
+        {
+          data.qualifications.length > 0 && (
+            <div class="mt-6 rounded-xl border border-ink-100 bg-ink-50/60 p-6">
+              <h2 class="text-base font-bold text-ink-900">服务资质</h2>
+              <ul class="mt-3 space-y-2 text-sm text-ink-600">
+                {data.qualifications.map((q) => (
+                  <li class="flex gap-2">
+                    <span class="text-brand-500" aria-hidden="true">·</span>
+                    {q}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </aside>
+    </div>
+
+    <!-- 同城其他中心 -->
+    {
+      siblings.length > 0 && (
+        <div class="mt-16 border-t border-ink-100 pt-10">
+          <h2 class="mb-5 text-lg font-bold text-ink-900">{data.city}的其他中心</h2>
+          <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {siblings.map((sibling) => (
+              <CenterCard center={sibling} labels={labels} showCover={false} />
+            ))}
+          </div>
+        </div>
+      )
+    }
+  </section>
+
+  <CtaBanner />
+</PageLayout>

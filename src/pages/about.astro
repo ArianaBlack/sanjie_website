@@ -1,0 +1,278 @@
+---
+import { Image } from 'astro:assets';
+import PageLayout from '../layouts/PageLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import StatsBar from '../components/StatsBar.astro';
+import CtaBanner from '../components/CtaBanner.astro';
+import { SITE } from '../data/site';
+import { getServices } from '../lib/content';
+import { getPublishedCenters, groupByRegion, countCities } from '../lib/centers';
+import orgChart from '../assets/about/org-chart.png';
+import teamCollage from '../assets/about/team-building-01.jpg';
+import teamGroup from '../assets/about/team-building-02.jpg';
+
+const services = await getServices();
+const centers = await getPublishedCenters();
+const regionGroups = groupByRegion(centers);
+
+const isPlaceholder = (v: string) => !v || v.includes('待填写');
+---
+
+<PageLayout
+  title="关于我们"
+  subtitle={isPlaceholder(SITE.tagline) ? undefined : SITE.tagline}
+  crumbs={[{ label: '首页', href: '/' }, { label: '关于我们' }]}
+  description={isPlaceholder(SITE.intro.short) ? `了解${SITE.name}的业务范围、服务能力与团队情况。` : SITE.intro.short}
+>
+  <!-- 公司简介 -->
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <div class="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
+      <div>
+        <h2 class="text-2xl font-bold text-ink-900">公司简介</h2>
+        <div class="prose-cn mt-5 max-w-none">
+          <p>{SITE.intro.long}</p>
+        </div>
+
+        <dl class="mt-8 grid gap-5 sm:grid-cols-2">
+          <div class="rounded-xl border border-ink-100 bg-white p-5">
+            <dt class="text-sm text-ink-400">公司全称</dt>
+            <dd class="mt-1.5 font-medium text-ink-800">{SITE.legalName}</dd>
+          </div>
+          {
+            SITE.foundedYear && (
+              <div class="rounded-xl border border-ink-100 bg-white p-5">
+                <dt class="text-sm text-ink-400">成立年份</dt>
+                <dd class="mt-1.5 font-medium text-ink-800">{SITE.foundedYear} 年</dd>
+              </div>
+            )
+          }
+          <div class="rounded-xl border border-ink-100 bg-white p-5">
+            <dt class="text-sm text-ink-400">服务区域</dt>
+            <dd class="mt-1.5 font-medium text-ink-800">{SITE.serviceArea}</dd>
+          </div>
+          <div class="rounded-xl border border-ink-100 bg-white p-5">
+            <dt class="text-sm text-ink-400">主要业务</dt>
+            <dd class="mt-1.5 font-medium text-ink-800">
+              {services.map((s) => s.data.navLabel).join('、')}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <aside class="lg:pt-16">
+        {
+          SITE.stats.length > 0 ? (
+            <div class="rounded-xl border border-ink-100 bg-ink-50/60 p-6">
+              <StatsBar stats={SITE.stats} />
+            </div>
+          ) : (
+            <div class="rounded-xl border border-dashed border-ink-200 bg-ink-50/60 p-6 text-sm leading-relaxed text-ink-400">
+              公司数据（员工人数、持证工程师人数、累计服务客户数等）待公司提供后展示。
+              <br />
+              <span class="mt-2 block text-xs">
+                这些数字会公开展示，必须真实可核查。
+              </span>
+            </div>
+          )
+        }
+      </aside>
+    </div>
+  </section>
+
+  <!-- 发展历程 -->
+  {
+    SITE.milestones.length > 0 && (
+      <section class="border-y border-ink-100 bg-ink-50/60">
+        <div class="mx-auto max-w-6xl px-4 py-14">
+          <SectionHeading title="发展历程" />
+          <ol class="relative space-y-8 border-l border-ink-200 pl-8">
+            {SITE.milestones.map((milestone) => (
+              <li class="relative">
+                <span
+                  class="absolute -left-[2.15rem] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-brand-600"
+                  aria-hidden="true"
+                />
+                <p class="text-sm font-bold text-brand-600">{milestone.year}</p>
+                <p class="mt-1 leading-relaxed text-ink-700">{milestone.event}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- 企业文化 -->
+  {
+    (SITE.culture.mission || SITE.culture.vision || SITE.culture.values) && (
+      <section class="mx-auto max-w-6xl px-4 py-14">
+        <SectionHeading title="企业文化" />
+        <div class="grid gap-4 sm:grid-cols-3">
+          {SITE.culture.mission && (
+            <div class="rounded-xl border border-ink-100 bg-white p-5">
+              <p class="text-xs font-semibold tracking-wide text-brand-600">使命</p>
+              <p class="mt-2 leading-relaxed text-ink-700">{SITE.culture.mission}</p>
+            </div>
+          )}
+          {SITE.culture.vision && (
+            <div class="rounded-xl border border-ink-100 bg-white p-5">
+              <p class="text-xs font-semibold tracking-wide text-brand-600">愿景</p>
+              <p class="mt-2 leading-relaxed text-ink-700">{SITE.culture.vision}</p>
+            </div>
+          )}
+          {SITE.culture.values && (
+            <div class="rounded-xl border border-ink-100 bg-white p-5">
+              <p class="text-xs font-semibold tracking-wide text-brand-600">价值观</p>
+              <p class="mt-2 leading-relaxed text-ink-700">{SITE.culture.values}</p>
+            </div>
+          )}
+        </div>
+      </section>
+    )
+  }
+
+  <!--
+    组织架构
+
+    ⚠️ 公开前请公司确认两件事：
+      1. 架构图里「事业部」下列了「装修事业部 / 智能化事业部 / 电力事业部」。
+         公司目前持有的是**消防设施工程专业承包壹级**。若经营范围里没有相应的
+         施工资质，对外展示这三个事业部容易被理解为在承接装修、电力工程，
+         属超资质宣传。如与实际不符，请提供修改后的架构图。
+      2. 架构图仅画部门、不写人名，这一点是对的，请不要在图上补姓名。
+  -->
+  <section class="border-y border-ink-100 bg-ink-50/60">
+    <div class="mx-auto max-w-6xl px-4 py-14">
+      <SectionHeading
+        title="组织架构"
+        subtitle="董事长与总经理之下分设职能部门与业务部门，项目层面实行项目经理、施工班组长与专职安全员驻场管理。"
+      />
+      <div class="rounded-xl border border-ink-100 bg-white p-3 sm:p-6">
+        <Image
+          src={orgChart}
+          alt={`${SITE.legalName}组织架构图`}
+          widths={[480, 960, 1400]}
+          sizes="(min-width: 1152px) 1104px, 100vw"
+          class="mx-auto h-auto w-full"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <p class="mt-3 text-xs leading-relaxed text-ink-400">
+        架构图仅展示部门设置。为保护员工个人信息，图上不列人员姓名，联系方式统一由公司总机与业务微信对外承接。
+      </p>
+    </div>
+  </section>
+
+  <!--
+    团队风采
+
+    ⚠️ 这两张照片里有可清晰辨认的人脸，公开前请确认：
+      1. 照片中的同事是否同意公司官网使用（《个人信息保护法》）。
+         2020 年至今人员有流动，离职同事的肖像同样需要其本人同意。
+      2. 合影拍摄于 2020 年，画面中约 30 人，而公司现登记在职员工为 11 人
+         （《供应商信息表》口径）。图上已标注年份，避免被理解为当前规模。
+         若担心被误读，可以只保留拼图、撤掉合影。
+  -->
+  <section class="mx-auto max-w-6xl px-4 py-14">
+    <SectionHeading
+      title="团队风采"
+      subtitle="消防工程最终要靠人到现场去做。这是我们为数不多的全员合影。"
+    />
+
+    <div class="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+      <figure class="overflow-hidden rounded-xl border border-ink-100 bg-white">
+        <Image
+          src={teamGroup}
+          alt="公司 2020 年夏季特训营全员合影"
+          class="h-auto w-full"
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption class="border-t border-ink-100 px-5 py-3 text-sm text-ink-500">
+          2020 年夏季特训营合影
+        </figcaption>
+      </figure>
+
+      <div class="prose-cn max-w-none">
+        <h3 class="text-lg font-bold text-ink-900">一支能驻场的队伍</h3>
+        <p class="mt-4 leading-relaxed text-ink-600">
+          消防工程不同于一般的安装工程，它的交付质量很大程度上取决于现场有没有人真的在盯着。
+          公司现有在职员工 11 人，其中持证技术人员 5 人，涵盖一级注册消防工程师、一级建造师、
+          二级建造师与专职安全员。
+        </p>
+        <p class="mt-4 leading-relaxed text-ink-600">
+          项目实施时实行项目经理、施工班组长与专职安全员驻场管理。隐蔽工程与关键工序由驻场人员
+          现场确认并同步留存影像资料，不依赖事后补记录；每道工序完成后报请验收签字确认，
+          再移交下一道工序。
+        </p>
+      </div>
+    </div>
+
+    <figure class="mt-6 overflow-hidden rounded-xl border border-ink-100 bg-white">
+      <Image
+        src={teamCollage}
+        alt="公司团建活动照片"
+        class="h-auto w-full"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption class="border-t border-ink-100 px-5 py-3 text-sm text-ink-500">
+        团建活动留影
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- 服务网络 -->
+  {
+    centers.length > 0 && (
+      <section class="mx-auto max-w-6xl px-4 py-14">
+        <SectionHeading
+          title="服务网络"
+          subtitle={`目前已在 ${regionGroups.length} 个大区、${countCities(centers)} 个城市设有维保合作中心。`}
+        />
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {regionGroups.map((group) => (
+            <div class="rounded-xl border border-ink-100 bg-white p-5">
+              <div class="flex items-baseline justify-between">
+                <h3 class="font-bold text-ink-900">{group.region}</h3>
+                <span class="text-sm text-ink-400">{group.total} 家</span>
+              </div>
+              <p class="mt-2 text-sm text-ink-500">
+                {group.cities.map((c) => c.city).join('、')}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div class="mt-6">
+          <a
+            href="/centers/"
+            class="text-sm font-medium text-brand-600 underline underline-offset-4 hover:text-brand-700"
+          >
+            查看全部合作中心 →
+          </a>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- 资质入口 -->
+  <section class="mx-auto max-w-6xl px-4 pb-14">
+    <div class="flex flex-col items-start justify-between gap-4 rounded-xl border border-ink-100 bg-white p-6 md:flex-row md:items-center">
+      <div>
+        <h2 class="text-lg font-bold text-ink-900">资质与荣誉</h2>
+        <p class="mt-1.5 text-sm text-ink-500">
+          营业执照、行业资质、体系认证与人员持证情况的完整说明。
+        </p>
+      </div>
+      <a
+        href="/qualifications/"
+        class="shrink-0 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+      >
+        查看资质
+      </a>
+    </div>
+  </section>
+
+  <CtaBanner />
+</PageLayout>

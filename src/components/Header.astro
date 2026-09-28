@@ -1,0 +1,285 @@
+---
+import { SITE, PRIMARY_TEL } from '../data/site';
+import { getServices, shouldShowNews } from '../lib/content';
+/*
+  ⚠️ 必须带 ?url 后缀。
+  Astro 里从 src/ 导入的 SVG 默认被当成「组件」，直接 import 得到的是组件函数而非路径；
+  当成 <img src={...}> 用会被渲染成一串内部函数源码（踩过）。
+  加 ?url 才是取资源路径。
+*/
+import logoMark from '../assets/brand/logo-mark.svg?url';
+
+const services = await getServices();
+const showNews = await shouldShowNews();
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+
+/** 主叫号码：400 未开通时自动回退到固定电话 */
+const tel = PRIMARY_TEL;
+
+const aboutLinks = [
+  { label: '公司简介', href: '/about/', desc: '了解我们的团队与服务能力' },
+  { label: '资质荣誉', href: '/qualifications/', desc: '营业执照、行业资质与认证' },
+  ...(showNews
+    ? [{ label: '新闻资讯', href: '/news/', desc: '公司动态与行业政策' }]
+    : []),
+  { label: '联系我们', href: '/contact/', desc: '联系方式与到访路线' },
+];
+---
+
+<header class="sticky top-0 z-50 border-b border-ink-100 bg-white/95 backdrop-blur">
+  <!-- 顶部信息条：小屏隐藏，避免占用宝贵的首屏高度 -->
+  <div class="hidden border-b border-ink-100 bg-ink-50 text-xs text-ink-500 md:block">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-1.5">
+      <p>专业消防施工 · 改造 · 维保 · 技术咨询 · 灭火器充装</p>
+      <p class="flex items-center gap-4">
+        {
+          tel && (
+            <a href={`tel:${tel}`} class="font-medium text-brand-600 hover:text-brand-700">
+              服务热线 {tel}
+            </a>
+          )
+        }
+        <span>{SITE.contact.hours}</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+    <!-- Logo：品牌盾形标记 + 文字。深色页脚用的是同一标记的反白版 -->
+    <a href="/" class="flex shrink-0 items-center gap-2.5" aria-label={`${SITE.name} 首页`}>
+      <img src={logoMark} alt="" width="36" height="36" class="h-9 w-9" />
+      <span
+        class="text-lg font-bold tracking-tight text-ink-900"
+        style="font-family: var(--font-display)">{SITE.name}</span
+      >
+    </a>
+
+    <!-- 桌面导航 -->
+    <nav class="hidden items-center gap-1 lg:flex" aria-label="主导航">
+      <a
+        href="/"
+        class:list={[
+          'rounded px-3 py-2 text-sm font-medium transition-colors',
+          isActive('/') ? 'text-brand-600' : 'text-ink-600 hover:text-brand-600',
+        ]}>首页</a
+      >
+
+      <!-- 业务范围：mega menu -->
+      <div class="group relative">
+        <button
+          type="button"
+          class:list={[
+            'flex items-center gap-1 rounded px-3 py-2 text-sm font-medium transition-colors',
+            isActive('/services/') ? 'text-brand-600' : 'text-ink-600 hover:text-brand-600',
+          ]}
+          aria-haspopup="true"
+        >
+          业务范围
+          <svg class="h-3.5 w-3.5 transition-transform group-hover:rotate-180" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div
+          class="invisible absolute left-1/2 top-full z-50 w-[36rem] -translate-x-1/2 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        >
+          <div class="grid grid-cols-2 gap-1 rounded-lg border border-ink-100 bg-white p-2 shadow-lg">
+            {
+              services.map((service) => (
+                <a
+                  href={`/services/${service.id}/`}
+                  class="rounded-md p-3 transition-colors hover:bg-brand-50"
+                >
+                  <span class="block text-sm font-semibold text-ink-900">
+                    {service.data.navLabel}
+                  </span>
+                  <span class="mt-0.5 block text-xs leading-relaxed text-ink-400">
+                    {service.data.tagline}
+                  </span>
+                </a>
+              ))
+            }
+            <a
+              href="/services/"
+              class="col-span-2 rounded-md border-t border-ink-100 p-3 text-center text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50"
+            >
+              查看全部业务 →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <a
+        href="/centers/"
+        class:list={[
+          'rounded px-3 py-2 text-sm font-medium transition-colors',
+          isActive('/centers/') ? 'text-brand-600' : 'text-ink-600 hover:text-brand-600',
+        ]}>维保合作中心</a
+      >
+      <a
+        href="/cases/"
+        class:list={[
+          'rounded px-3 py-2 text-sm font-medium transition-colors',
+          isActive('/cases/') ? 'text-brand-600' : 'text-ink-600 hover:text-brand-600',
+        ]}>工程案例</a
+      >
+
+      <!-- 关于我们：普通下拉 -->
+      <div class="group relative">
+        <button
+          type="button"
+          class:list={[
+            'flex items-center gap-1 rounded px-3 py-2 text-sm font-medium transition-colors',
+            ['/about/', '/qualifications/'].some(isActive)
+              ? 'text-brand-600'
+              : 'text-ink-600 hover:text-brand-600',
+          ]}
+          aria-haspopup="true"
+        >
+          关于我们
+          <svg class="h-3.5 w-3.5 transition-transform group-hover:rotate-180" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div
+          class="invisible absolute right-0 top-full z-50 w-64 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        >
+          <div class="rounded-lg border border-ink-100 bg-white p-2 shadow-lg">
+            {
+              aboutLinks.map((link) => (
+                <a
+                  href={link.href}
+                  class="block rounded-md p-3 transition-colors hover:bg-brand-50"
+                >
+                  <span class="block text-sm font-semibold text-ink-900">{link.label}</span>
+                  <span class="mt-0.5 block text-xs text-ink-400">{link.desc}</span>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 桌面端主 CTA -->
+    <div class="hidden shrink-0 lg:block">
+      <a
+        href={tel ? `tel:${tel}` : '/contact/'}
+        class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+      >
+        立即咨询
+      </a>
+    </div>
+
+    <!-- 移动端菜单按钮 -->
+    <button
+      type="button"
+      id="mobile-nav-toggle"
+      class="grid h-10 w-10 place-items-center rounded-md border border-ink-200 lg:hidden"
+      aria-label="打开菜单"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+    >
+      <svg class="h-5 w-5 text-ink-700" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- 移动端抽屉 -->
+  <div
+    id="mobile-nav"
+    class="fixed inset-0 top-0 z-50 hidden overflow-y-auto bg-white lg:hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="站点菜单"
+  >
+    <div class="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+      <span class="text-lg font-bold text-ink-900">{SITE.name}</span>
+      <button
+        type="button"
+        id="mobile-nav-close"
+        class="grid h-10 w-10 place-items-center rounded-md border border-ink-200"
+        aria-label="关闭菜单"
+      >
+        <svg class="h-5 w-5 text-ink-700" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <nav class="px-4 py-2" aria-label="移动端导航">
+      <a href="/" class="block border-b border-ink-100 py-3.5 font-medium text-ink-800">首页</a>
+
+      <p class="pt-4 pb-1 text-xs font-semibold tracking-wide text-ink-400">业务范围</p>
+      {
+        services.map((service) => (
+          <a
+            href={`/services/${service.id}/`}
+            class="block border-b border-ink-100 py-3.5 pl-3 font-medium text-ink-800"
+          >
+            {service.data.navLabel}
+          </a>
+        ))
+      }
+
+      <a href="/centers/" class="block border-b border-ink-100 py-3.5 font-medium text-ink-800">
+        维保合作中心
+      </a>
+      <a href="/cases/" class="block border-b border-ink-100 py-3.5 font-medium text-ink-800">
+        工程案例
+      </a>
+
+      <p class="pt-4 pb-1 text-xs font-semibold tracking-wide text-ink-400">关于我们</p>
+      {
+        aboutLinks.map((link) => (
+          <a
+            href={link.href}
+            class="block border-b border-ink-100 py-3.5 pl-3 font-medium text-ink-800"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <!-- 移动端底部固定转化条：打电话 / 加微信 -->
+    <div class="sticky bottom-0 mt-6 grid grid-cols-2 gap-3 border-t border-ink-100 bg-white p-4">
+      <a
+        href={tel ? `tel:${tel}` : '/contact/'}
+        class="rounded-md bg-brand-600 py-3 text-center text-sm font-semibold text-white"
+      >
+        一键拨号
+      </a>
+      <a
+        href="/contact/"
+        class="rounded-md border border-brand-600 py-3 text-center text-sm font-semibold text-brand-600"
+      >
+        加微信咨询
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.getElementById('mobile-nav-toggle');
+  const close = document.getElementById('mobile-nav-close');
+  const nav = document.getElementById('mobile-nav');
+
+  const setOpen = (open: boolean) => {
+    if (!nav || !toggle) return;
+    nav.classList.toggle('hidden', !open);
+    toggle.setAttribute('aria-expanded', String(open));
+    // 打开抽屉时锁定背景滚动
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+
+  toggle?.addEventListener('click', () => setOpen(true));
+  close?.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+</script>
