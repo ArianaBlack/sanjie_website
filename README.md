@@ -171,7 +171,9 @@ Cloudflare 不是境内接入商，**部署在 Cloudflare 上的站点无法办�
 
 - [x] 公司信息、对外电话已换成真实信息（`src/data/site.ts`）
 - [x] 已删除 `src/content/centers/` 下的示例数据
-- [x] `certificates.yaml` 已换成真实证书（消防设施工程专业承包壹级）
+- [x] `certificates.yaml` 已换成真实证书：
+      建筑业企业资质证书（消防设施工程专业承包壹级）、
+      消防设施维护保养检测从业条件备案公示（社会消防技术服务信息系统截图）
 - [x] `robots.txt` 改为构建时生成，Sitemap 域名自动跟随 `site` 配置
 - [x] 31 个工程案例已录入，32 张配图已优化（仍有 2 个案例待补图，见下）
 
@@ -186,6 +188,12 @@ Cloudflare 不是境内接入商，**部署在 Cloudflare 上的站点无法办�
 - [ ] 组织架构图里「装修事业部 / 智能化事业部 / 电力事业部」与公司实际经营范围不冲突
 - [ ] 团建照片已取得出镜同事（含已离职者）的肖像使用同意
 - [ ] 湘乡合作中心（`src/content/centers/xiangxiang.md`）补齐信息后把 `draft` 改为 `false`
-- [ ] **补 2 个案例的配图**（目前列表页显示为灰底占位）：
-      `changsha-lvdi-haishangtan`（长沙绿地海外滩）—— 现有素材带第三方水印，不能用；
-      `tongdao-heritage-fire-protection`（通道文物古建）—— 尚未提供照片
+- [ ] **补 4 个案例的配图**（目前列表页显示为灰底占位）：
+      `changsha-lvdi-haishangtan`（绿地海外滩，素材带安居客水印）、
+      `tongdao-heritage-fire-protection`（通道文物古建，未提供）、
+      `xiangjian-zhongyang-lvcheng`（湘建中央绿城，宣传册配图与实际形态不符）、
+      `xiangxiang-lizhi-chengbang`（励志城邦，未提供）
+- [ ] **关注注册消防工程师的注册有效期**：傅志杭 2026-10-26 到期、谭刚来 2026-12-15 到期。
+      届期需完成延续注册，并重新截图替换资质页的公示截图
+- [ ] **核对 `site.ts` 的 stats**：现为「持证技术人员 5 人」，但公示系统显示
+      注册消防工程师 2 名 + 消防设施操作员 6 名（两者是不同类别的证书，口径需统一说明）

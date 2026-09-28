@@ -89,12 +89,27 @@ const yearsInBusiness = SITE.foundedYear
       <div class="grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-center">
         <!-- 左：主张 -->
         <div>
-          <p
-            class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs text-brand-200 backdrop-blur"
-          >
-            <span class="h-1.5 w-1.5 rounded-full bg-accent-400" aria-hidden="true"></span>
-            消防设施工程专业承包一级资质
-          </p>
+          <!--
+            首屏资质标签。
+            ⚠️ 第二条写「从业条件备案」而不是「资质」：消防设施维护保养检测自 2019 年起
+               已由行政许可改为从业条件备案制，不存在对应的资质证书，系统里的字段名是
+               「服务类型」。写「持有维保检测资质」属虚构资质。
+               依据是「社会消防技术服务信息系统」的公示截图，见 /qualifications/。
+          -->
+          <div class="flex flex-wrap items-center gap-2">
+            <p
+              class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs text-brand-200 backdrop-blur"
+            >
+              <span class="h-1.5 w-1.5 rounded-full bg-accent-400" aria-hidden="true"></span>
+              消防设施工程专业承包壹级资质
+            </p>
+            <p
+              class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs text-brand-200 backdrop-blur"
+            >
+              <span class="h-1.5 w-1.5 rounded-full bg-accent-400" aria-hidden="true"></span>
+              消防设施维护保养检测（从业条件备案）
+            </p>
+          </div>
 
           <h1 class="mt-7 text-4xl font-bold leading-[1.15] text-white md:text-6xl">
             {headlineMain}

@@ -68,18 +68,24 @@ const isPlaceholder = (v: string) => !v || v.includes('待填写');
   <!-- 维保业务合规说明 -->
   <section class="mx-auto max-w-6xl px-4 pb-14">
     <div class="rounded-xl border border-ink-100 bg-ink-50/60 p-6">
-      <h2 class="text-base font-bold text-ink-900">关于消防维保资质的说明</h2>
+      <h2 class="text-base font-bold text-ink-900">关于消防维保从业条件的说明</h2>
       <p class="mt-3 text-sm leading-relaxed text-ink-600">
-        消防设施维护保养检测资质自 2019 年起，已由原来的行政许可制改为
-        <strong class="font-semibold text-ink-800">从业条件备案制</strong>。
-        消防技术服务机构的合规情况，以「社会消防技术服务信息系统」的公示信息为准。
+        消防设施维护保养检测自 2019 年起，已由原来的行政许可制改为
+        <strong class="font-semibold text-ink-800">从业条件备案制</strong>，
+        不再核发资质证书。消防技术服务机构的合规情况，以「社会消防技术服务信息系统」的
+        公示信息为准。
       </p>
       <!--
-        ⚠️ 这里**不能**写「可以查询到我们的备案信息」。
-        截至 2026-09-22，公司提供的材料里没有任何「社会消防技术服务信息系统」
-        的公示截图，无法证实已完成备案。写上去就是虚假宣传。
-        拿到公示截图后，可以在此处补一句明确的备案信息。
+        ✅ 2026-09-28：公司提供了「社会消防技术服务信息系统」的公示截图，
+           证实服务类型为「消防设施维护保养检测」，因此现在可以写这句了。
+           在此之前此处是一段警告注释，说明没有证据、不能这么写。
       -->
+      <p class="mt-3 text-sm leading-relaxed text-ink-600">
+        本公司已完成从业条件备案，在该系统中的服务类型为
+        <strong class="font-semibold text-ink-800">消防设施维护保养检测</strong>，
+        公示信息含注册消防工程师 2 名、消防设施操作员 6 名。公示截图见上方「行业资质」一栏，
+        也可直接在上方系统中检索本公司名称核验。
+      </p>
       <p class="mt-3 text-sm leading-relaxed text-ink-600">
         建议在委托消防维保或检测服务前，先在该系统中核验服务机构的从业条件备案情况、服务类型与人员配置，这是一条公开、可自行查验的途径。
       </p>
